@@ -197,3 +197,7 @@ gpuQueue.submit([&](sycl::handler& cgh) {
 }).wait();
 
 ```
+
+> If you're gonna build a time machine into a car, why not do it with some style?
+>
+> — *Back to the Future*
