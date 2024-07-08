@@ -54,3 +54,5 @@ gpuQueue.submit([&](sycl::handler& cgh) {
 }).wait();
 ```
 
+### Test on Polaris 
+
