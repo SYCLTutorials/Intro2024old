@@ -3,7 +3,7 @@
 
 ### Architecture
 
-<img width="1303" alt="sycl" src="../images/image4.png">
+<img width="1303" alt="sycl" src="/images/image4.png">
 
 SYCL is a framework designed to help programmers use a variety of computing devices—like CPUs, GPUs, and FPGAs—in one application, despite this not being directly addressed in the standard C++ language. It aims to guide the future development of C++ by showing how heterogeneous computing can be integrated effectively. Although SYCL doesn't promise seamless performance across different hardware types, it provides a consistent way to write and adjust code for various architectures. It uses advanced C++ features like templates and lambda functions to make it easier to write efficient code that works with different backend technologies, such as OpenCL and CUDA. For more information you can look at the *Kronos* page here [SYCL](https://www.khronos.org/sycl/).
 
