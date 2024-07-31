@@ -98,7 +98,7 @@ SYCL offers two methods for managing data:
 
  A command group is a fundamental construct that encapsulates a set of operations meant to be executed on a device.
 
-<img width="455" alt="" src="/images/image1.png" >
+<img width="455" alt="" src="/01-intro/images/image1.png" >
 
 
 - Command groups are defined by calling the **submit** function on the queue.
@@ -117,7 +117,7 @@ gpuQueue.submit([&](sycl::handler &cgh) {
 
 A schedulre is a component responsible for managing the order and execution of tasks on computational resources.
 
-![Scheduling Overview](/images/image3.png)
+![Scheduling Overview](/01-intro/images/image3.png)
 
 - When the **submit** function is called, it creates a command group handler (`cgh`) and submits it to the scheduler.
 - The scheduler is responsible for executing the commands on the designated target device.
@@ -164,7 +164,7 @@ try {
 
 Buffers and accessors are used in SYCL for managing and accessing data across different computing devices, including CPUs, GPUs, and other accelerators:
 
-![Diagram illustrating the relationship between buffers, accessors, and devices](/images/image2.png)
+![Diagram illustrating the relationship between buffers, accessors, and devices](/01-intro/images/image2.png)
 
 - **Buffers**: Buffers are used to manage data across the host and various devices. A buffer abstractly represents a block of data and handles the storage, synchronization, and consistency of this data across different memory environments. When a buffer object is constructed, it does not immediately allocate or copy data to the device memory. This allocation or transfer only occurs when the runtime determines that a device needs to access the data, optimizing memory usage and data transfer.
 
