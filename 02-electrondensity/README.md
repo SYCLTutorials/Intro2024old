@@ -65,28 +65,6 @@ q.submit([&](sycl::handler &h) {
     });
 ```
 
-### Modified access to pointers directly from accessors 
-
-```cpp
-h.parallel_for<class Field2>(sycl::range<1>(nsize), [=](sycl::id<1> idx){
-    double cart[3];
-    int k = (int) idx % npoints_z;
-    int j = ((int) idx/npoints_z) % npoints_y;
-    int i = (int) idx / (npoints_z * npoints_y);
-
-    cart[0] = xmin + i * delta;
-    cart[1] = ymin + j * delta;
-    cart[2] = zmin + k * delta;
-
-    // Direct access of pointers from accessors 
-    field_acc[idx] = DensitySYCL2(
-                        norb, npri, icnt_acc.get_pointer(),
-                        vang_acc.get_pointer(), cart, coor_acc.get_pointer(),
-                        eprim_acc.get_pointer(), nocc_acc.get_pointer(),
-                        coef_acc.get_pointer());
-  });
-```
-
 # Loop optimization
 
 Loop unrolling is an optimization method used to enhance parallel processing and boost the efficiency of specific 
