@@ -1,75 +1,118 @@
-# HandleWF
+# handleWF
+Original repo can be located in Raymundo Hernandez-Esparza repository [handleWF](https://github.com/rayhe88/handleWF)
 
-The following task is to provide alternatives for the follwing code for optimization for the SYCL kernel. 
+A code to manipulate the wave function of an electronic structure calculation in WFX format.
 
-We have to main parts for the computation being performed by SYCL in the `Field` class. The function to compute the *density* is in 
-the following `void Field::evalDensity_sycl()` 
 
-I outlined the code for the kernel and provide explanation and possible methods for imporvement. But before we get into the 
-SYCL code and kernel, let's see if we can replace the `Rvector` class with the `std::vector` provided by STL of `C++`. 
 
-`Atom.hpp` has been adjusted to use STL `std::vector` instead of Rvector.
+This is the version 2 written using C++.
 
-### Declarting Buffers 
+## Compilation
 
-```cpp
-  sycl::buffer<int, 1>   icnt_buff   (wf.icntrs.data(), sycl::range<1>(npri));
-  sycl::buffer<int, 1>   vang_buff   (wf.vang.data()  , sycl::range<1>(3*npri));
-  sycl::buffer<double, 1> coor_buff  (coor            , sycl::range<1>(3*natm));
-  sycl::buffer<double, 1> eprim_buff (wf.depris.data(), sycl::range<1>(npri));
-  sycl::buffer<double, 1> coef_buff  (wf.dcoefs.data(), sycl::range<1>(npri*norb));
-  sycl::buffer<double, 1> nocc_buff  (wf.dnoccs.data(), sycl::range<1>(norb));
-  sycl::buffer<double, 1> field_buff (field_local, sycl::range<1>(nsize));
+Create the `build` subdirectory
+```
+mkdir build
 ```
 
-### Queue submit
-
-```cpp
-q.submit([&](sycl::handler &h) {
-  .....
-}
+Move to the `build`
 ```
-### Accessor 
-
-```cpp
-    auto field_acc = field_buff.get_access<sycl::access::mode::write>(h);
-    auto icnt_acc = icnt_buff.get_access<sycl::access::mode::read>(h);
-    auto vang_acc = vang_buff.get_access<sycl::access::mode::read>(h);
-    auto coor_acc = coor_buff.get_access<sycl::access::mode::read>(h);
-    auto eprim_acc = eprim_buff.get_access<sycl::access::mode::read>(h);
-    auto coef_acc = coef_buff.get_access<sycl::access::mode::read>(h);
-    auto nocc_acc = nocc_buff.get_access<sycl::access::mode::read>(h);
+cd build
 ```
 
-### Parallel_for
-
-```cpp
- h.parallel_for<class Field2>(sycl::range<1>(nsize), [=](sycl::id<1> idx){
-      double cart[3];
-      int k = (int) idx % npoints_z;
-      int j = ((int) idx/npoints_z) % npoints_y;
-      int i = (int) idx / (npoints_z * npoints_y);
-
-      cart[0] = xmin + i * delta;
-      cart[1] = ymin + j * delta;
-      cart[2] = zmin + k * delta;
-
-      const int *icnt_ptr = icnt_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-      const int *vang_ptr = vang_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-      const double *coor_ptr = coor_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-      const double *eprim_ptr = eprim_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-      const double *nocc_ptr = nocc_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-      const double *coef_ptr = coef_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
-
-      field_acc[idx] = DensitySYCL2(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr, eprim_ptr, nocc_ptr, coef_ptr);
-    });
+Type the next commands
+```
+cmake -H. -DUSE_SYCL=On -DCMAKE_CXX_COMPILER=icpx ../src/
 ```
 
-# Loop optimization
+Finally build the project
+```
+cmake --build .
+```
+### Compilation in Polaris - ALCF Machine
 
-Loop unrolling is an optimization method used to enhance parallel processing and boost the efficiency of specific 
-computational operations, especially when applied in hardware settings like FPGAs. 
+```
+module use /soft/modulefiles
+module load oneapi/upstream
+module load nvhpc-mixed
+module load craype-accel-nvidia80
+module unload nvhpc-mixed
+module load spack-pe-base cmake
+ 
+EXTRA_FLAGS="-sycl-std=2020 -O3 -fsycl -fsycl-targets=nvptx64-nvidia-cuda -Xsycl-target-backend --cuda-gpu-arch=sm_80"
+export CFLAGS="-ffp-model=precise"
+export CXXFLAGS="-ffp-model=precise -fsycl $EXTRA_FLAGS"
+export CC=clang
+export CXX=clang++
+ 
+ 
+mkdir build
+cmake ../src/ -DCMAKE_CXX_COMPILER=clang++
+cmake --build .
+```
 
-Useful library `#include <boost/align/aligned_allocator.hpp>`
+## Testing
+### DELL Laptop 
+```
+./handleWF.x ../test/dimer_HCOOH.wfx
+Compilation Date: Jun 12 2024  14:19:26
+Git SHA1: 77e969d-dirty
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on 11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Time for CPU : 5.22786e+07 μs
+ Time for GPU  : 1.53022e+06 μs (Kernel 1)
+ Time for GPU  : 2.22982e+06 μs (Kernel 2)
+ Ratio CPU/GPU (kernel1) : 34.1641
+ Ratio CPU/GPU (kernel2) : 23.4452
+```
+### Sunspot - ALCF Machine
+```
+./handleWF.x ../test/dimer_HCOOH.wfx
+Compilation Date: Jun 12 2024  19:24:00
+Git SHA1: 77e969d-dirty
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on Intel(R) Data Center GPU Max 1550
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on Intel(R) Data Center GPU Max 1550
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Time for CPU : 5.12023e+07 μs
+ Time for GPU  : 1.60554e+06 μs (Kernel 1)
+ Time for GPU  : 143117 μs (Kernel 2)
+ Ratio CPU/GPU (kernel1) : 31.8911
+ Ratio CPU/GPU (kernel2) : 357.765
 
-Maybe included `#include <boost/align/aligned_allocator.hpp>` to create a memory-aligned `std::vector`.
+```
+### Polaris - ALCF Machine
+```
+./handleWF.x ../test/dimer_HCOOH.wfx 
+Version: 0.0
+Compilation Date: Jun 12 2024  22:11:56
+Git SHA1: 77e969d-dirty
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on NVIDIA A100-SXM4-40GB
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Running on NVIDIA A100-SXM4-40GB
+ Points ( 80,80,40)
+ TotalPoints : 256000
+ Time for CPU : 4.61134e+07 μs
+ Time for GPU  : 2.62889e+06 μs (Kernel 1)
+ Time for GPU  : 267336 μs (Kernel 2)
+ Ratio CPU/GPU (kernel1) : 17.541
+ Ratio CPU/GPU (kernel2) : 172.492
+```
+## Acknowledgements
+This research used resources of the Argonne Leadership Computing Facility, which is a DOE Office of Science User Facility supported under Contract DE-AC02-06CH11357. Argonne National Laboratory’s work was supported by the U.S. Department of Energy, Office of Science, under contract DE-AC02-06CH11357.
+
+
+All rights reserved. Copyright Argonne National Laboratory UChicago LLC. Raymundo Hernandez-Esparza
+
