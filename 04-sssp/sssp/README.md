@@ -78,4 +78,5 @@ Head into the directory `SSSP` and run the following commands
 - Replace hard-coded graphs with `CLI` functionality and the ability to read from files.
 - Implement Google Test to ensure correctness and identify bugs.
 - Add visualizations using the [Manim](https://3b1b.github.io/manim/index.html#) engine.
+- Working on a CUDA implementation coming soon!
 
