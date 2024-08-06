@@ -176,7 +176,24 @@ can run for example:
 dpcpp -o hello_world hello_world.cpp
 ```
 
+If you're using `clang` the following should help you compile the code:
+
+```bash
+clang++ -fsycl -o hello_world hello_world.cpp
+```
+
 If you have access to Argonne National Lab you can check out our way to compile on Polaris by going here [Polaris](polaris.md)
+
+# Addtional examples
+
+Explore more advanced examples in our other directories, where we go beyond simple mathematical computations. Here, we focus on leveraging parallelism to tackle problems in electron density, marching cubes, and shortest-path algorithms using heterogeneous hardware, all implemented with SYCL. Each example is designed to showcase the power and flexibility of SYCL in handling complex computational tasks efficiently.
+
+If you're curious and want a sneak peek into these problems, check out the following directories for a brief description and detailed examples:
+
+- [Electron denisty](../02-electrondensity)
+- [Marching Cubes](../03-marchingCubes)
+- [Single Source Shortest-Path](../04-sssp)
+
 
 ***
 
