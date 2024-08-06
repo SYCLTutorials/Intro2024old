@@ -136,7 +136,7 @@ try {
 The program begins by attempting to select an available GPU device using `sycl::gpu_selector`. If a GPU is found, a queue `gpuQueue` is created for the GPU device. Within this queue, a command group is submitted using the submit function. Inside the command group, a `sycl::stream` object `os` is created for output within the kernel, and a single task is executed using `cgh.single_task`, which prints `Hello World!` to the stream. The program waits for the completion of the submitted task with `.wait()` and prints a success message to the console.
 
 
-# Putting all together with a vector dot product  
+# Putting it all together with a vector dot product  
 
 If you look over the code, you'll identify that it incorporates everything we learned from the above, utilizing these concepts to form a parallel computation for a linear algebra problem. In the example, we use small sizes for our vectors, but if given vectors of larger size, SYCL would take advantage of the GPU to compute the dot product $\langle\ u, v \rangle$.
 
