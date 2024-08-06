@@ -95,46 +95,6 @@ A schedulre is a component responsible for managing the order and execution of t
 > The Scheduler then takes over, determining the optimal order and timing for executing the command group on the available computational resources.
 > Finally, the commands are dispatched to the Target Device, where the actual computation takes place
 
-# Getting started with Hello World 
-
-This example demonstrates the basics of getting started with SYCL by executing a simple `Hello World` program on a GPU, with a fallback to the CPU if no GPU is available.
-
-```cpp
-class hello_world;
-
-// Check for available GPU devices
-auto gpu_selector = sycl::gpu_selector{};
-try {
-  // Create a queue using the GPU selector
-  auto gpuQueue = sycl::queue{gpu_selector};
-
-  // Submit a command group to the queue
-  gpuQueue.submit([&](sycl::handler &cgh) {
-    // Create a stream for output within kernel
-    auto os = sycl::stream{128, 128, cgh};
-
-    // Execute a single task
-    cgh.single_task<hello_world>([=]() {
-      os << "Hello World!\n";
-    });
-  }).wait(); // Wait for completion
-
-  std::cout << "Successfully executed on GPU.\n";
-} catch (sycl::exception const& e) {
-  // Fallback if no GPU is found
-  std::cerr << "No GPU device found. Error: " << e.what() << '\n';
-  std::cerr << "Trying to fallback to CPU.\n";
-  auto cpuQueue = sycl::queue{sycl::cpu_selector{}};
-  cpuQueue.submit([&](sycl::handler &cgh) {
-    auto os = sycl::stream{128, 128, cgh};
-    cgh.single_task<hello_world>([=]() {
-      os << "Hello World from CPU!\n";
-    });
-  }).wait();
-```
-
-The program begins by attempting to select an available GPU device using `sycl::gpu_selector`. If a GPU is found, a queue `gpuQueue` is created for the GPU device. Within this queue, a command group is submitted using the submit function. Inside the command group, a `sycl::stream` object `os` is created for output within the kernel, and a single task is executed using `cgh.single_task`, which prints `Hello World!` to the stream. The program waits for the completion of the submitted task with `.wait()` and prints a success message to the console.
-
 
 # Putting it all together with a vector dot product  
 
