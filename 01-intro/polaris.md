@@ -1,6 +1,6 @@
 # Setting Up the Environment for SYCL on Polaris
 
-![Polaris](../images/polaris.jpg)
+![Polaris](images/polaris.jpg)
 
 *Image source: [ALCF Beginners Guide](https://github.com/argonne-lcf/ALCFBeginnersGuide/tree/master)*
 
