@@ -4,7 +4,7 @@
  *  Calculate the shortest path distance from a single vertex in the graph to all other vertices.
 
    The goal is to study the performance of algorithms for **SSSP** using parallel computation in c++ using SYCL. 
-   The first attempt will be to translate the Delta stepping algorithm. 
+   The first attempt will be to translate the $\Delta$ stepping algorithm. 
 
 <hr>  
 <p align="center">
