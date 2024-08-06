@@ -64,5 +64,3 @@ Below are steps to set up a SYCL environment on Polaris using the DPC++ compiler
 - **Support**: If you encounter issues, consult the ALCF support center or participate in community forums available to Polaris users.
 
 This guide provides specific instructions tailored to the advanced hardware and software environment of Polaris, helping ensure that your SYCL applications are optimally configured and ready for development.
-
----
