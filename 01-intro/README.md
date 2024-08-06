@@ -8,7 +8,7 @@ SYCL is an open standard developed by the Khronos Group, the same group responsi
 
 ### Advantages of SYCL
 
-One of the primary advantages of SYCL is its ability to integrate seamlessly with C++17 and upcoming versions, enabling features like lambda functions, auto-typing, and templating. This integration not only improves the programmability and readability of the code but also leverages the type safety and performance optimizations provided by modern C++. Here are a few key benefits:
+One of the primary advantages of SYCL is its ability to integrate seamlessly with C++17 and upcoming versions, enabling features like lambda functions, auto-typing, and templating[^2]. This integration not only improves the programmability and readability of the code but also leverages the type safety and performance optimizations provided by modern C++. Here are a few key benefits:
 - **Single-Source Development**: Unlike traditional approaches that might require maintaining separate code bases for different architectures, SYCL unifies the code into a single source. This simplifies development and reduces maintenance burdens.
 - **Cross-Platform Portability**: SYCL code can be executed on any device that has a compatible SYCL runtime, providing true cross-platform capabilities.
 - **Performance**: With SYCL, developers do not have to sacrifice performance for portability. It allows fine control over parallel execution and memory management, which are critical for achieving optimal performance on GPUs.
@@ -21,10 +21,13 @@ This introduction sets the stage for learning SYCL by highlighting its relevance
 
 ---
 
+[^1]: SYCL Academy by Codeplay Software, available at [https://github.com/codeplaysoftware/syclacademy](https://github.com/codeplaysoftware/syclacademy).
+[^2]: Reinders, J., Ashbaugh, B., Brodman, J., Kinsner, M., Pennycook, J., & Tian, X. (2021). *Data Parallel C++: Mastering DPC++ for Programming of Heterogeneous Systems using C++ and SYCL*. Apress. ISBN: 978-1484275282. Available at [https://www.apress.com/gp/book/9781484275282](https://www.apress.com/gp/book/9781484275282).
+
 
 # Basics of a SYCL Kernel 
 
-In SYCL, all computations are submitted through a queue. This queue is associated with a device, and any computation assigned to the queue is executed on this device.
+In SYCL, all computations are submitted through a queue. This queue is associated with a device, and any computation assigned to the queue is executed on this device[^1].
 This is how we check if a gpu is available for use and then initialize a sycl queue for a gpu:
 ```cpp
 // Check for available GPU devices
@@ -181,3 +184,4 @@ If you have access to Argonne National Lab you can check out our way to compile 
 > If you're gonna build a time machine into a car, why not do it with some style?
 >
 > — *Back to the Future*
+
