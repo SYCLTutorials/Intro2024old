@@ -173,6 +173,8 @@ can run for example:
 dpcpp -o hello_world hello_world.cpp
 ```
 
+If you have access to Argonne National Lab you can check out our way to compile on Polaris by going here [Polaris](polaris.md)
+
 ***
 
 
