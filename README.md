@@ -14,7 +14,7 @@ If you are running on Intel Dev Cloud, launch a terminal and execute the above `
 
 ## Pre-requisites
 * Dev Cloud Intel account. [See](https://github.com/SYCLTutorials/Intro2024/blob/main/01-intro/devcloud.md)
-* 
+
 
 ## What's inside?
 * [Introduction to SYCL](https://github.com/SYCLTutorials/Intro2024/tree/main/01-intro).
