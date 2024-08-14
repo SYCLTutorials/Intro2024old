@@ -2,7 +2,7 @@
 ## Creating your account at the Intel Developer Cloud (5 minutes)
 
 These code examples can be executed at the Intel Dev Cloud. If you don't have an account, point your browser to
-https://www.intel.com/content/www/us/en/developer/tools/devcloud/services.html
+[https://www.intel.com/content/www/us/en/developer/tools/devcloud/services.html](https://www.intel.com/content/www/us/en/developer/tools/devcloud/services.html)
 and click on the "Sign Up" button.
 
 You will be asked to enter an email. The system will send a verification code to your email account. Enter the verification code and now the system will ask you to enter and verify a password. After this step you must Terms and Conditions and then you will be in.
