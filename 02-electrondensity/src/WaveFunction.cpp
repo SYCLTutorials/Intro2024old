@@ -1,4 +1,4 @@
-#include "Wavefunction.hpp"
+#include "WaveFunction.hpp"
 
 Wavefunction::Wavefunction() {
   natm = 0;
