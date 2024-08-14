@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
     g_bValidate = true;
     runAutoTest(argc, argv);
   } else {
-//    runGraphicsTest(argc, argv);
+    runAutoTest(argc, argv);
   }
 
   exit(EXIT_SUCCESS);
@@ -272,7 +272,7 @@ int main(int argc, char **argv) {
 // initialize marching cubes
 ////////////////////////////////////////////////////////////////////////////////
 void initMC(int argc, char **argv) {
-  printf("Starting `initMC`");
+  printf("Starting `initMC`\n");
   sycl::queue q;
   // parse command line arguments
   int n;
@@ -341,7 +341,7 @@ void initMC(int argc, char **argv) {
   printf("Starting `createVolumeTexture`\n");
   createVolumeTexture(d_volume, size);
   
-  printf("Finished loading volume data");
+  printf("Finished loading volume data\n");
 #endif
 
   if (g_bValidate) {
@@ -360,7 +360,7 @@ void initMC(int argc, char **argv) {
   d_voxelOccupiedScan = static_cast<uint *>(sycl::malloc_device(memSize, q));
   d_compVoxelArray = static_cast<uint *>(sycl::malloc_device(memSize, q));
 
-  printf("Finished `initMC`");
+  printf("Finished `initMC`\n");
 }
 
 void cleanup() {
@@ -409,12 +409,12 @@ void computeIsosurface() {
     //grid[1] = grid[0] / 32768;
     //grid[0] = 32768;
   //}
-  printf("Starting `launch_classifyVoxel`");
+  printf("Starting `launch_classifyVoxel`\n");
   // calculate number of vertices need per voxel
   launch_classifyVoxel(q, globalRange, d_voxelVerts, d_voxelOccupied, d_volume,
                        gridSize, gridSizeShift, gridSizeMask, numVoxels,
                        voxelSize, isoValue);
-  printf("Finished `launch_classifyVoxel`");
+  printf("Finished `launch_classifyVoxel`\n");
 #if DEBUG_BUFFERS
   printf("voxelVerts:\n");
   dumpBuffer(d_voxelVerts, numVoxels, sizeof(uint));
