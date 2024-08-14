@@ -1,5 +1,5 @@
 
-## Creating your account at the Intel Developer Cloud (15 minutes)
+## Creating your account at the Intel Developer Cloud (5 minutes)
 
 These code examples can be executed at the Intel Dev Cloud. If you don't have an account, point your browser to
 https://www.intel.com/content/www/us/en/developer/tools/devcloud/services.html
