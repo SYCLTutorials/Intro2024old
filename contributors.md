@@ -12,12 +12,12 @@
 
 If you are contributing any code in IPython/Jupyter notebooks, *please*
 install the `nbstripout` extension (available e.g. on
-`github <https://github.com/kynan/nbstripout#installation>`_ and
-`PyPI <https://pypi.org/project/nbstripout/>`_).  After installing,
+[github](https://github.com/kynan/nbstripout#installation) and
+[PyPI](https://pypi.org/project/nbstripout/) as `pip install nbstripout`.  After installing,
 activate it for this project by running:
 
 ```
-   nbstripout --install --attributes .gitattributes
+python -m nbstripout --install --attributes .gitattributes
 ````
 
 from the top-level repository directory.  Please note that that
@@ -26,9 +26,7 @@ from the top-level repository directory.  Please note that that
 judiciously.  You can ignore these settings with the following command:
 
 ```
-
-   git config filter.nbstripout.extrakeys '\
-      cell.metadata.keep_output cell.metadata.init_cell'
+   git config filter.nbstripout.extrakeys 'cell.metadata.keep_output cell.metadata.init_cell'
 ```
 (The keys ``metadata.kernel_spec.name`` and
 ``metadata.kernel_spec.display_name`` may also be useful to reduce diff
