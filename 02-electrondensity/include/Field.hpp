@@ -2,7 +2,7 @@
 #define _FIELD_HPP_
 
 #include "Lebedev.hpp"
-#include "Wavefunction.hpp"
+#include "WaveFunction.hpp"
 #include <cmath>
 #include <iostream>
 #include <string>

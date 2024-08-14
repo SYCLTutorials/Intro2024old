@@ -1,29 +1,9 @@
-/* Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *  * Neither the name of NVIDIA CORPORATION nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/****************************************************
+  This code is ported to SYCLfrom the original 
+  Marching Cubes implementation in the Nvidia CUDA SDK
+  https://github.com/NVIDIA/cuda-samples/tree/master/Samples/5_Domain_Specific/marchingCubes
+*****************************************************/
+
 
 /*
   Marching cubes
@@ -85,7 +65,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "helper_math.h"
+//#include "helper_math.h"
 #include "helper_string.h"
 
 #include <sycl/sycl.hpp>
@@ -94,21 +74,21 @@
 #include "defines.h"
 
 extern "C" void launch_classifyVoxel(sycl::queue &q, sycl::range<3> globalRange,
-				     uint *voxelVerts, uint *voxelOccupied, uchar *volume,
-				     sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
-				     sycl::uint3 gridSizeMask, uint numVoxels,
-				     sycl::float3 voxelSize, float isoValue);
+                                     uint *voxelVerts, uint *voxelOccupied, uchar *volume,
+                                     sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
+                                     sycl::uint3 gridSizeMask, uint numVoxels,
+                                     sycl::float3 voxelSize, float isoValue);
 
 extern "C" void launch_compactVoxels(sycl::queue &q, sycl::range<3> globalRange,
                                      uint *compactedVoxelArray, uint *voxelOccupied,
                                      uint *voxelOccupiedScan, uint numVoxels);
 
 extern "C" void launch_generateTriangles(sycl::queue &q, sycl::range<3> globalRange,
-					 float4 *pos, float4 *norm,
-					 uint *compactedVoxelArray,uint *numVertsScanned,
-					 sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
-					 sycl::uint3 gridSizeMask, sycl::float3 voxelSize,
-					 float isoValue, uint activeVoxels, uint maxVerts);
+                                         sycl::float4 *pos, sycl::float4 *norm,
+                                         uint *compactedVoxelArray,uint *numVertsScanned,
+                                         sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
+                                         sycl::uint3 gridSizeMask, sycl::float3 voxelSize,
+                                         float isoValue, uint activeVoxels, uint maxVerts);
 
 extern "C" void allocateTextures(sycl::queue &q, uint **d_edgeTable, uint **d_triTable,
                                  uint **d_numVertsTable);
@@ -133,7 +113,7 @@ uint totalVerts = 0;
 float isoValue = 0.2f;
 float dIsoValue = 0.005f;
 
-float4 *d_pos = nullptr, *d_normal = nullptr;
+sycl::float4 *d_pos = nullptr, *d_normal = nullptr;
 
 uchar *d_volume = nullptr;
 uint *d_voxelVerts = nullptr;
@@ -282,7 +262,7 @@ int main(int argc, char **argv) {
     g_bValidate = true;
     runAutoTest(argc, argv);
   } else {
-//    runGraphicsTest(argc, argv);
+    runAutoTest(argc, argv);
   }
 
   exit(EXIT_SUCCESS);
@@ -292,7 +272,7 @@ int main(int argc, char **argv) {
 // initialize marching cubes
 ////////////////////////////////////////////////////////////////////////////////
 void initMC(int argc, char **argv) {
-  printf("Starting `initMC`");
+  printf("Starting `initMC`\n");
   sycl::queue q;
   // parse command line arguments
   int n;
@@ -361,12 +341,12 @@ void initMC(int argc, char **argv) {
   printf("Starting `createVolumeTexture`\n");
   createVolumeTexture(d_volume, size);
   
-  printf("Finished loading volume data");
+  printf("Finished loading volume data\n");
 #endif
 
   if (g_bValidate) {
-    d_pos = static_cast<float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
-    d_normal = static_cast<float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+    d_pos = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+    d_normal = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
   }
 
   // allocate textures
@@ -380,14 +360,14 @@ void initMC(int argc, char **argv) {
   d_voxelOccupiedScan = static_cast<uint *>(sycl::malloc_device(memSize, q));
   d_compVoxelArray = static_cast<uint *>(sycl::malloc_device(memSize, q));
 
-  printf("Finished `initMC`");
+  printf("Finished `initMC`\n");
 }
 
 void cleanup() {
   sycl::queue q;
   if (g_bValidate) {
-	  sycl::free(d_pos, q);
-	  sycl::free(d_normal, q);
+          sycl::free(d_pos, q);
+          sycl::free(d_normal, q);
   }
 
   destroyAllTextureObjects();
@@ -401,7 +381,7 @@ void cleanup() {
   sycl::free(d_compVoxelArray, q);
 
   if (d_volume) {
-	  sycl::free(d_volume, q);
+          sycl::free(d_volume, q);
   }
 }
 
@@ -429,12 +409,12 @@ void computeIsosurface() {
     //grid[1] = grid[0] / 32768;
     //grid[0] = 32768;
   //}
-  printf("Starting `launch_classifyVoxel`");
+  printf("Starting `launch_classifyVoxel`\n");
   // calculate number of vertices need per voxel
   launch_classifyVoxel(q, globalRange, d_voxelVerts, d_voxelOccupied, d_volume,
                        gridSize, gridSizeShift, gridSizeMask, numVoxels,
                        voxelSize, isoValue);
-  printf("Finished `launch_classifyVoxel`");
+  printf("Finished `launch_classifyVoxel`\n");
 #if DEBUG_BUFFERS
   printf("voxelVerts:\n");
   dumpBuffer(d_voxelVerts, numVoxels, sizeof(uint));
@@ -506,3 +486,4 @@ void computeIsosurface() {
                            maxVerts);
   q.wait();
 }
+
