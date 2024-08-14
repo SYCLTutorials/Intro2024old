@@ -17,7 +17,7 @@ install the `nbstripout` extension (available e.g. on
 activate it for this project by running:
 
 ```
-   nbstripout --install --attributes .gitattributes
+python -m nbstripout --install --attributes .gitattributes
 ````
 
 from the top-level repository directory.  Please note that that
