@@ -1,7 +1,7 @@
 #include "Field.hpp"
 #include "Atom.hpp"
 #include "Lebedev.hpp"
-#include "Wavefunction.hpp"
+#include "WaveFunction.hpp"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
