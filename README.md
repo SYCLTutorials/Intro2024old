@@ -2,6 +2,17 @@
 
 **Note:** This tutorial is currently under development and is being updated continually. Please check back regularly for the latest updates.
 
+## Cloning this repo
+
+You will need to clone this repo in the computing environment for this tutorial. Use the following command line:
+
+```
+git clone https://github.com/SYCLTutorials/Intro2024.git
+```
+
+
+
+
 ## What's inside?
 
 
