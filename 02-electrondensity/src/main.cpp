@@ -1,5 +1,5 @@
 #include "Field.hpp"
-#include "Wavefunction.hpp"
+#include "WaveFunction.hpp"
 #include "version.hpp"
 #include "Timer.hpp"
 #include <cstdlib>
