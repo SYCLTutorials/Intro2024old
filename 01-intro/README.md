@@ -21,9 +21,6 @@ This introduction sets the stage for learning SYCL by highlighting its relevance
 
 ---
 
-[^1]: SYCL Academy by Codeplay Software, available at [https://github.com/codeplaysoftware/syclacademy](https://github.com/codeplaysoftware/syclacademy).
-[^2]: Reinders, J., Ashbaugh, B., Brodman, J., Kinsner, M., Pennycook, J., & Tian, X. (2021). *Data Parallel C++: Mastering DPC++ for Programming of Heterogeneous Systems using C++ and SYCL*. Apress. ISBN: 978-1484275282. Available at [https://www.apress.com/gp/book/9781484275282](https://www.apress.com/gp/book/9781484275282).
-
 
 # Basics of a SYCL Kernel 
 
@@ -153,6 +150,11 @@ If you're curious and want a sneak peek into these problems, check out the follo
 - [Electron denisty](../02-electrondensity)
 - [Marching Cubes](../03-marchingCubes)
 - [Single Source Shortest-Path](../04-sssp)
+
+# References
+
+- "SYCL Academy" by Codeplay Software, available on GitHub: [github.com/codeplaysoftware/syclacademy](https://github.com/codeplaysoftware/syclacademy)
+- "Data Parallel C++: Mastering DPC++ for Programming of Heterogeneous Systems using C++ and SYCL" by Reinders, J., Ashbaugh, B., Brodman, J., Kinsner, M., Pennycook, J., & Tian, X. (2021). Apress. ISBN: 978-1484275282.
 
 
 ***
