@@ -71,6 +71,8 @@ Head into the directory `SSSP` and run the following commands
   cmake --build build
 ```
 
+# Compile on Dev Cloud
+
 
 ## TODO
 
