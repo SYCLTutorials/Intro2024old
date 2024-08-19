@@ -54,5 +54,9 @@ gpuQueue.submit([&](sycl::handler& cgh) {
 }).wait();
 ```
 
-### Test on Polaris 
+### Test on Dev Cloud
+
+```bash
+icpx -fsycl source_file -o output_file -std=c++17 -lOpenCL
+```
 
