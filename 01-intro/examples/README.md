@@ -60,3 +60,10 @@ gpuQueue.submit([&](sycl::handler& cgh) {
 icpx -fsycl source_file -o output_file -std=c++17 -lOpenCL
 ```
 
+
+### Test on Polairs 
+
+```bash
+clang++ -fsycl -fsycl-targets=nvptx64-nvidia-cuda -std=c++17 hello_world.cpp -o hello_world -lOpenCL
+```
+
