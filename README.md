@@ -26,7 +26,15 @@ git clone https://github.com/SYCLTutorials/Intro2024.git
 If you are running on Intel Dev Cloud, launch a terminal and execute the above `git clone` command. This will clone this repository in your home directory. Navigate to directory "Intro2024" and the contents of this repository will be there.
 
 ## Pre-requisites
-* Dev Cloud Intel account. [See](https://github.com/SYCLTutorials/Intro2024/blob/main/01-intro/devcloud.md)
+
+* Option 1. Intel Tiber Cloud (easy)
+  * Sign up at [console.cloud.intel.com](https://github.com/SYCLTutorials/Intro2024/blob/main/01-intro/devcloud.md)
+
+* Option 2. Local Windows PC with Xe Intel integrated GPU
+   * OneAPI
+   * Jupyter
+   * Arc Intel Drivers
+   * WSL2 Ubuntu (optional)
 
   
 ## Acknowledgements and license
