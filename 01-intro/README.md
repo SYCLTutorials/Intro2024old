@@ -49,6 +49,7 @@ auto accB = bufB.get_access<sycl::access::mode::read>(cgh);
 auto accResult = bufResult.get_access<sycl::access::mode::read_write>(cgh);
 ```
 
+
 3. **Unified Shared Memory (USM) Model:** This model allows for direct data sharing between the host and device, simplifying memory management by eliminating the need for explicit buffers and accessors. Here is the following changes from the buffer/accessor model to USM model:
 
 ```cpp
@@ -81,6 +82,7 @@ gpuQueue.submit([&](sycl::handler &cgh) {
 > Inside the command group function, the handler is used to specify dependencies, define the kernel function, and set up accessors for memory objects that the kernel will use. Once these elements are defined, the command group is assembled and ready for execution on the device.
 
 
+
 # Task Scheduling and Execution in SYCL 
 
 A schedulre is a component responsible for managing the order and execution of tasks on computational resources.
@@ -91,6 +93,7 @@ A schedulre is a component responsible for managing the order and execution of t
 > The sequence begins with the Queue, where tasks are initially submitted. Once a task is submitted, it is encapsulated within a Command Group (CG), which contains all the necessary information and dependencies for execution.
 > The Scheduler then takes over, determining the optimal order and timing for executing the command group on the available computational resources.
 > Finally, the commands are dispatched to the Target Device, where the actual computation takes place
+
 
 
 # Putting it all together with a vector dot product  
