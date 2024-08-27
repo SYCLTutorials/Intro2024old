@@ -1,4 +1,3 @@
-#include "setGrid.hpp"
 
 void Field::evalDensity_sycl() {
 
@@ -11,7 +10,7 @@ void Field::evalDensity_sycl() {
   double xmin, ymin, zmin, delta;
   vector<double> field;
 
-  configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
+  Field::configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
 
   int natm = wf.natm;
   int npri = wf.npri;

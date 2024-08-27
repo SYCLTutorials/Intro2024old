@@ -1,4 +1,3 @@
-#include "setGrid.hpp"
 
 // CPU CODE
 void Field::evalDensity2() {
@@ -8,7 +7,7 @@ void Field::evalDensity2() {
   double xmin, ymin, zmin, delta;
   vector<double> field;
 
-  configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
+  Field::configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
 
   double *coor = new double[3 * wf.natm];
   for (int i = 0; i < wf.natm; i++) {
