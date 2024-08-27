@@ -1,3 +1,4 @@
+#include "setGrid.hpp"
 
 void Field::evalDensity_sycl2() {
 
@@ -5,16 +6,12 @@ void Field::evalDensity_sycl2() {
   std::cout << " Running on "
             << q.get_device().get_info<sycl::info::device::name>() << std::endl;
 
-  double xmin = -10.0, xmax = 10.0;
-  double ymin = -10.0, ymax = 10.0;
-  double zmin = -5.0, zmax = 5.0;
-  double delta = 0.25;
+  int npoints_x, npoints_y, npoints_z;
+  double xmin, ymin, zmin, delta;
   vector<double> field;
+  size_t nsize;
+  configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
 
-  int npoints_x = int((xmax - xmin) / delta);
-  int npoints_y = int((ymax - ymin) / delta);
-  int npoints_z = int((zmax - zmin) / delta);
-  const size_t nsize = npoints_x * npoints_y * npoints_z;
   int natm = wf.natm;
   int npri = wf.npri;
   int norb = wf.norb;

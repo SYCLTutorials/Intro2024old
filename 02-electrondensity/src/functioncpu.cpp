@@ -1,16 +1,14 @@
+#include "setGrid.hpp"
 
 // CPU CODE
 void Field::evalDensity2() {
 
+  int npoints_x, npoints_y, npoints_z;
+  size_t nsize;
+  double xmin, ymin, zmin, delta;
   vector<double> field;
-  double xmin = -10.0, xmax = 10.0;
-  double ymin = -10.0, ymax = 10.0;
-  double zmin = -5.0, zmax = 5.0;
-  double delta = 0.25;
 
-  int npoints_x = int((xmax - xmin) / delta);
-  int npoints_y = int((ymax - ymin) / delta);
-  int npoints_z = int((zmax - zmin) / delta);
+  configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
 
   double *coor = new double[3 * wf.natm];
   for (int i = 0; i < wf.natm; i++) {
