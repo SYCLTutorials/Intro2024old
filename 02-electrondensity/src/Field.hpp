@@ -1,7 +1,6 @@
 #ifndef _FIELD_HPP_
 #define _FIELD_HPP_
 
-#include "Lebedev.hpp"
 #include "WaveFunction.hpp"
 #include <cmath>
 #include <iostream>
@@ -34,11 +33,72 @@ public:
 
   void dumpXYZ(std::string filename);
 
-  void dumpCube(double, double, double, double, int, int, int, vector<double>,
-                std::string filename);
+//  void dumpCube(double, double, double, double, int, int, int, vector<double>,
+//                std::string filename);
+void dumpCube(double xmin, double ymin, double zmin, double delta,
+                     int nx, int ny, int nz, vector<double> field,
+                     std::string filename) {
+  std::ofstream fout(filename);
+  if (fout.is_open()) {
+
+    fout << "Density" << std::endl;
+    fout << "By handleWF project" << std::endl;
+    fout << std::setw(5) << std::fixed << wf.natm;
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << xmin << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << ymin << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << zmin;
+    fout << std::endl;
+
+    fout << std::setw(5) << std::fixed << nx;
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << delta << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0 << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0;
+    fout << std::endl;
+
+    fout << std::setw(5) << std::fixed << ny;
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0 << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << delta << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0;
+    fout << std::endl;
+
+    fout << std::setw(5) << std::fixed << nz;
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0 << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << 0.0 << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << delta;
+    fout << std::endl;
+  }
+
+  for (auto atom : wf.atoms) {
+    fout << std::setw(5) << std::fixed << atom.get_atnum();
+    fout << std::setw(13) << std::setprecision(6) << std::fixed
+         << atom.get_charge() << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << atom.get_x()
+         << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << atom.get_y()
+         << ' ';
+    fout << std::setw(13) << std::setprecision(6) << std::fixed << atom.get_z();
+    fout << std::endl;
+  }
+
+  int cnt = 0;
+  for (auto value : field) {
+    cnt++;
+    fout << std::setw(15) << std::setprecision(6) << std::fixed
+         << std::scientific << value;
+    if (cnt == 6) {
+      fout << std::endl;
+      cnt = 0;
+    }
+  }
+  if (cnt != 0)
+    fout << std::endl;
+
+  fout.close();
+}
 
 private:
   Wavefunction &wf;
 };
+
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef _SETGRID_HPP_
 #define _SETGRID_HPP_
 
+#include <cmath>
+
 void configGrid(int  *npx, int *npy, int *npz, double *delta,
                 double *xmin, double *ymin, double *zmin,
                 size_t *nsize){
