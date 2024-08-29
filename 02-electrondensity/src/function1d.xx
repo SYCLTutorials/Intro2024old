@@ -5,16 +5,16 @@ void Field::evalDensity_sycl() {
   std::cout << " Running on "
             << q.get_device().get_info<sycl::info::device::name>() << std::endl;
 
-  int npoints_x, npoints_y, npoints_z;
-  size_t nsize;
-  double xmin, ymin, zmin, delta;
   vector<double> field;
-
-  Field::configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
-
   int natm = wf.natm;
   int npri = wf.npri;
   int norb = wf.norb;
+  int npy = npoints_y;
+  int npz = npoints_z;
+  double x0 = xmin;
+  double y0 = ymin;
+  double z0 = zmin;
+  double hp = delta;
   double *field_local = new double[nsize];
 
   std::cout << " Points ( " << npoints_x << "," << npoints_y << "," << npoints_z
@@ -53,13 +53,13 @@ void Field::evalDensity_sycl() {
       h.parallel_for<class Field2>(
         sycl::range<1>(nsize), [=](sycl::id<1> idx) {
         double cart[3];
-        int k = (int)idx % npoints_z;
-        int j = ((int)idx / npoints_z) % npoints_y;
-        int i = (int)idx / (npoints_z * npoints_y);
+        int k = (int)idx % npz;
+        int j = ((int)idx / npz) % npy;
+        int i = (int)idx / (npz * npy);
 
-        cart[0] = xmin + i * delta;
-        cart[1] = ymin + j * delta;
-        cart[2] = zmin + k * delta;
+        cart[0] = x0 + i * hp;
+        cart[1] = y0 + j * hp;
+        cart[2] = z0 + k * hp;
 
         const int *icnt_ptr =
             icnt_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
@@ -74,7 +74,7 @@ void Field::evalDensity_sycl() {
         const double *coef_ptr =
             coef_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
 
-        field_acc[idx] = DensitySYCL2(norb, npri, icnt_ptr, vang_ptr, cart,
+        field_acc[idx] = Density(norb, npri, icnt_ptr, vang_ptr, cart,
                                       coor_ptr, eprim_ptr, nocc_ptr, coef_ptr);
       });
     });

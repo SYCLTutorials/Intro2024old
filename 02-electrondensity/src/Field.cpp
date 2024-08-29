@@ -8,9 +8,16 @@
 
 #include <sycl/sycl.hpp>
 
-Field::Field(Wavefunction &wf) : wf(wf) {}
+Field::Field(Wavefunction &wf, double rmin, double delta) : wf(wf), xmin(rmin), ymin(rmin), zmin(rmin), delta(delta){
 
-double Field::DensitySYCL2(int norb, int npri, const int *icnt, const int *vang,
+    npoints_x = static_cast<int>(fabs(2.*xmin / delta));
+    npoints_y = static_cast<int>(fabs(2.*ymin / delta));
+    npoints_z = static_cast<int>(fabs(2.*zmin / delta));
+
+    nsize = npoints_x * npoints_y * npoints_z;
+}
+
+double Field::Density(int norb, int npri, const int *icnt, const int *vang,
                            const double *r, const double *coor,
                            const double *depris, const double *nocc,
                            const double *coef) {
@@ -47,10 +54,10 @@ double Field::DensitySYCL2(int norb, int npri, const int *icnt, const int *vang,
 }
 
 
-#include "functioncpu.xx"
+//#include "functioncpu.xx"
 
-//#include "function1d.cxx"
-//#include "function3d.cxx"
+//#include "function1d.xx"
+#include "function3d.xx"
 //#include "evaldensobj.cxx"
 
 

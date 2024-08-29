@@ -11,28 +11,31 @@ int main(int argc, char *argv[]) {
   std::cout << "Git SHA1: " << GIT_SHA1 << std::endl;
 
   Wavefunction wf;
-  if( argc != 2){
+  if( argc != 4){
     std::cout << " We need more arguments try with:" << std::endl;
-    std::cout << " ./" << argv[0] << " foo.wfx" << std::endl;
+    std::cout << " ./" << argv[0] << " foo.wfx"  << " delta" << " rmin"<< std::endl;
     exit(EXIT_FAILURE);
   }
-  wf.loadWF(argv[1]);
 
-  Field field(wf);
+  wf.loadWF(argv[1]);
+  double delta = std::stod(argv[2]);
+  double rmin  = std::stod(argv[3]);
+
+  Field field(wf, delta, rmin);
 
   Timer tcpu, tgpu, tgpu2;
 
- tcpu.start();
-  field.evalDensity2();
-  tcpu.stop();
+//  tcpu.start();
+//  field.evalDensity2();
+//  tcpu.stop();
 //vama
 //vama  tgpu.start();
 //vama  field.evalDensity_sycl();
 //vama  tgpu.stop();
 //vama
-//vama  tgpu2.start();
-//vama  field.evalDensity_sycl2();
-//vama  tgpu2.stop();
+  tgpu2.start();
+  field.evalDensity_sycl2();
+  tgpu2.stop();
 //vama
 //vama  std::cout << " Time for CPU : " << tcpu.getDuration() << " \u03BC"
 //vama            << "s" << std::endl;
