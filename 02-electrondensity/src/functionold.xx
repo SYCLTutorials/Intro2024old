@@ -59,7 +59,7 @@ void Field::evalDensity_sycl() {
       double *nocc_ptr = nocc_acc.get_pointer();
       double *coef_ptr = coef_acc.get_pointer();
 
-      field_acc[idx] = DensitySYCL2(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr, eprim_ptr, nocc_ptr, coef_ptr);
+      field_acc[idx] = Density(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr, eprim_ptr, nocc_ptr, coef_ptr);
     });
   });
   q.wait();

@@ -17,7 +17,7 @@ Field::Field(Wavefunction &wf, double rmin, double delta) : wf(wf), xmin(rmin), 
     nsize = npoints_x * npoints_y * npoints_z;
 }
 
-double Field::DensitySYCL2(int norb, int npri, const int *icnt, const int *vang,
+double Field::Density(int norb, int npri, const int *icnt, const int *vang,
                            const double *r, const double *coor,
                            const double *depris, const double *nocc,
                            const double *coef) {

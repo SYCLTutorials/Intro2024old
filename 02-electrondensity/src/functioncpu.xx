@@ -28,8 +28,7 @@ void Field::evalDensity2() {
         r[1] = y;
         r[2] = z;
 
-// this call function 1D or 3D
-        double den = DensitySYCL2(wf.norb, wf.npri, wf.icntrs.data(),
+        double den = Density(wf.norb, wf.npri, wf.icntrs.data(),
                                   wf.vang.data(), r, coor, wf.depris.data(),
                                   wf.dnoccs.data(), wf.dcoefs.data());
 

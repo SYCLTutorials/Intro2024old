@@ -78,7 +78,7 @@ void Field::evalDensity_sycl2() {
                 coef_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();
 
             field_acc[iglob] =
-                DensitySYCL2(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr,
+                Density(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr,
                              eprim_ptr, nocc_ptr, coef_ptr);
           });
     });
