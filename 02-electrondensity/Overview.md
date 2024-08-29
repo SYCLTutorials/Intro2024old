@@ -14,7 +14,7 @@ $$\rho(\vec{r}) = \sum_i^N \omega_i \left| \phi_i(\vec{r}) \right|^2$$
 
 While the orbitals are  determined from a linear combination of $K$ primitive functions, Cartesian Gaussian in this case, centered on the different nuclei ($R_\mu$) of the molecule. The coefficients ($c_{i\mu}$) are obtained from computational chemistry methods.
 
-$$\phi_i(\vec{r}) = \sum_\mu^K c_{i \mu} \; g\left(\vec{r}; \alpha_\mu, \vec{R}_\mu, \vec{l}_\mu\right)$$
+$$\phi_i(\vec{r}) = \sum_\mu^K c_{i \mu} \; g\left(\vec{r}; \alpha_\mu, \vec{R_\mu}, \vec{l_\mu}\right)$$
 
 Finally, Gaussian functions are 3-dimensional functions, as we mentioned above, they are centered on atoms that form the molecular system ($\vec{R} = (X, Y, Z)$) and whose exponents ($\alpha$) have been  previously optimized. Each Gaussian function is characterized by its center, the exponent, and the product of polynomials  in each Cartesian coordinate.
 
