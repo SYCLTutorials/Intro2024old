@@ -12,3 +12,4 @@ run-sycl.sh
 *.x
 *.cube
 build
+version.hpp
