@@ -5,12 +5,7 @@ void Field::evalDensity_sycl2() {
   std::cout << " Running on "
             << q.get_device().get_info<sycl::info::device::name>() << std::endl;
 
-  int npoints_x, npoints_y, npoints_z;
-  double xmin, ymin, zmin, delta;
   vector<double> field;
-  size_t nsize;
-  Field::configGrid(&npoints_x, &npoints_y, &npoints_z, &delta, &xmin, &ymin, &zmin, &nsize);
-
   int natm = wf.natm;
   int npri = wf.npri;
   int norb = wf.norb;

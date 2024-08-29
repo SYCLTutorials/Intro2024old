@@ -8,7 +8,14 @@
 
 #include <sycl/sycl.hpp>
 
-Field::Field(Wavefunction &wf) : wf(wf) {}
+Field::Field(Wavefunction &wf, double rmin, double delta) : wf(wf), xmin(rmin), ymin(rmin), zmin(rmin), delta(delta){
+
+    npoints_x = static_cast<int>(fabs(2.*xmin / delta));
+    npoints_y = static_cast<int>(fabs(2.*ymin / delta));
+    npoints_z = static_cast<int>(fabs(2.*zmin / delta));
+
+    nsize = npoints_x * npoints_y * npoints_z;
+}
 
 double Field::DensitySYCL2(int norb, int npri, const int *icnt, const int *vang,
                            const double *r, const double *coor,
