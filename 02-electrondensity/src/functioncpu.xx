@@ -4,7 +4,6 @@ void Field::evalDensity2() {
 
   vector<double> field;
 
-
   double *coor = new double[3 * wf.natm];
   for (int i = 0; i < wf.natm; i++) {
     Rvector R(wf.atoms[i].getCoors());

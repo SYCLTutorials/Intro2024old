@@ -25,17 +25,17 @@ int main(int argc, char *argv[]) {
 
   Timer tcpu, tgpu, tgpu2;
 
-  tcpu.start();
-  field.evalDensity2();
-  tcpu.stop();
+//  tcpu.start();
+//  field.evalDensity2();
+//  tcpu.stop();
 //vama
 //vama  tgpu.start();
 //vama  field.evalDensity_sycl();
 //vama  tgpu.stop();
 //vama
-//vama  tgpu2.start();
-//vama  field.evalDensity_sycl2();
-//vama  tgpu2.stop();
+  tgpu2.start();
+  field.evalDensity_sycl2();
+  tgpu2.stop();
 //vama
 //vama  std::cout << " Time for CPU : " << tcpu.getDuration() << " \u03BC"
 //vama            << "s" << std::endl;

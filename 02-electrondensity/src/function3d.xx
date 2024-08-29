@@ -9,6 +9,12 @@ void Field::evalDensity_sycl2() {
   int natm = wf.natm;
   int npri = wf.npri;
   int norb = wf.norb;
+  int npy = npoints_y;
+  int npz = npoints_z;
+  double x0 = xmin;
+  double y0 = ymin;
+  double z0 = zmin;
+  double hp = delta;
   double *field_local = new double[nsize];
 
   std::cout << " Points ( " << npoints_x << "," << npoints_y << "," << npoints_z
@@ -51,11 +57,11 @@ void Field::evalDensity_sycl2() {
             int k = idx[2];
             int j = idx[1];
             int i = idx[0];
-            int iglob = i * npoints_y * npoints_z + j * npoints_z + k;
+            int iglob = i * npy * npz + j * npz + k;
 
-            cart[0] = xmin + i * delta;
-            cart[1] = ymin + j * delta;
-            cart[2] = zmin + k * delta;
+            cart[0] = x0 + i * hp;
+            cart[1] = y0 + j * hp;
+            cart[2] = z0 + k * hp;
 
             const int *icnt_ptr =
                 icnt_acc.get_multi_ptr<sycl::access::decorated::no>().get_raw();

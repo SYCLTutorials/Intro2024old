@@ -54,10 +54,10 @@ double Field::DensitySYCL2(int norb, int npri, const int *icnt, const int *vang,
 }
 
 
-#include "functioncpu.xx"
+//#include "functioncpu.xx"
 
-//#include "function1d.cxx"
-//#include "function3d.cxx"
+//#include "function1d.xx"
+#include "function3d.xx"
 //#include "evaldensobj.cxx"
 
 
