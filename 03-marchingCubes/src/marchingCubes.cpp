@@ -1,5 +1,5 @@
 /****************************************************
-  This code is ported to SYCLfrom the original 
+  This code is ported to SYCL from the original 
   Marching Cubes implementation in the Nvidia CUDA SDK
   https://github.com/NVIDIA/cuda-samples/tree/master/Samples/5_Domain_Specific/marchingCubes
 *****************************************************/
@@ -60,44 +60,66 @@
   Using number of vertices from readback.
 */
 
-// includes
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-//#include "helper_math.h"
-#include "helper_string.h"
-
 #include <sycl/sycl.hpp>
-//#include <dpct/dpct.hpp>
 
-#include "defines.h"
+typedef unsigned int uint;
+typedef unsigned char uchar;
 
-extern "C" void launch_classifyVoxel(sycl::queue &q, sycl::range<3> globalRange,
-                                     uint *voxelVerts, uint *voxelOccupied, uchar *volume,
-                                     sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
-                                     sycl::uint3 gridSizeMask, uint numVoxels,
-                                     sycl::float3 voxelSize, float isoValue);
+// The number of threads to use for triangle generation (limited by shared
+// memory size)
+#define NTHREADS 32
 
-extern "C" void launch_compactVoxels(sycl::queue &q, sycl::range<3> globalRange,
-                                     uint *compactedVoxelArray, uint *voxelOccupied,
-                                     uint *voxelOccupiedScan, uint numVoxels);
+#define SKIP_EMPTY_VOXELS 1
 
-extern "C" void launch_generateTriangles(sycl::queue &q, sycl::range<3> globalRange,
-                                         sycl::float4 *pos, sycl::float4 *norm,
-                                         uint *compactedVoxelArray,uint *numVertsScanned,
-                                         sycl::uint3 gridSize, sycl::uint3 gridSizeShift,
-                                         sycl::uint3 gridSizeMask, sycl::float3 voxelSize,
-                                         float isoValue, uint activeVoxels, uint maxVerts);
+extern "C" void launch_classifyVoxel(sycl::queue &q, 
+		                     sycl::range<3> globalRange,
+                                     uint *voxelVerts, 
+				     uint *voxelOccupied, 
+				     uchar *volume,
+                                     sycl::uint3 gridSize, 
+				     sycl::uint3 gridSizeShift,
+                                     sycl::uint3 gridSizeMask, 
+				     uint numVoxels,
+                                     sycl::float3 voxelSize, 
+				     float isoValue);
 
-extern "C" void allocateTextures(sycl::queue &q, uint **d_edgeTable, uint **d_triTable,
-                                 uint **d_numVertsTable);
+extern "C" void launch_compactVoxels(sycl::queue &q, 
+		                     sycl::range<3> globalRange,
+                                     uint *compactedVoxelArray, 
+				     uint *voxelOccupied,
+                                     uint *voxelOccupiedScan, 
+				     uint numVoxels);
+
+extern "C" void launch_generateTriangles(sycl::queue &q, 
+		                     sycl::range<3> globalRange,
+                                     sycl::float4 *pos, 
+			             sycl::float4 *norm,
+                                     uint *compactedVoxelArray,
+			             uint *numVertsScanned,
+                                     sycl::uint3 gridSize, 
+				     sycl::uint3 gridSizeShift,
+                                     sycl::uint3 gridSizeMask, 
+			             sycl::float3 voxelSize,
+                                     float isoValue, 
+			             uint activeVoxels, 
+				     uint maxVerts);
+
+extern "C" void allocateTextures(sycl::queue &q, 
+		                     uint **d_edgeTable, 
+				     uint **d_triTable,
+                                     uint **d_numVertsTable);
+
 extern "C" void createVolumeTexture(uchar *d_volume, size_t buffSize);
 extern "C" void destroyAllTextureObjects();
-extern "C" void ThrustScanWrapper(unsigned int *output, unsigned int *input,
+extern "C" void ThrustScanWrapper(unsigned int *output, 
+		                  unsigned int *input,
                                   unsigned int numElements);
 
-const char *volumeFilename = "Bucky.raw";
+const char *volumeFilename = "./data/Bucky.raw";
 
 sycl::uint3 gridSizeLog2 = sycl::uint3(5, 5, 5);
 sycl::uint3 gridSizeShift;
@@ -129,28 +151,21 @@ uint *d_triTable = nullptr;
 
 bool g_bValidate = false;
 
-int *pArgc = nullptr;
-char **pArgv = nullptr;
 
 // forward declarations
-void runAutoTest(int argc, char **argv);
 void initMC(int argc, char **argv);
 void computeIsosurface();
+void cleanup();
+
 void dumpFile(void *dData, int data_bytes, const char *file_name);
 
 template <class T>
 void dumpBuffer(T *d_buffer, int nelements, int size_element);
-void cleanup();
-
-//void mainMenu(int i);
-
-#define EPSILON 5.0f
-#define THRESHOLD 0.30f
 
 ////////////////////////////////////////////////////////////////////////////////
 // Load raw data from disk
 ////////////////////////////////////////////////////////////////////////////////
-uchar *loadRawFile(char *filename, int size) {
+uchar *loadRawFile(const char *filename, int size) {
   FILE *fp = fopen(filename, "rb");
 
   if (!fp) {
@@ -192,78 +207,20 @@ void dumpBuffer(T *d_buffer, int nelements, int size_element) {
   free(h_buffer);
 }
 
-void runAutoTest(int argc, char **argv) {
-  sycl::queue q;
-
-  // Initialize CUDA buffers for Marching Cubes
-  initMC(argc, argv);
-
-  computeIsosurface();
-
-  /*
-
-  char *ref_file = nullptr;
-  getCmdLineArgumentString(argc, (const char **)argv, "file", &ref_file);
-
-  enum DUMP_TYPE { DUMP_POS = 0, DUMP_NORMAL, DUMP_VOXEL };
-  int dump_option = getCmdLineArgumentInt(argc, (const char **)argv, "dump");
-
-  bool bTestResult = true;
-
-  switch (dump_option) {
-    case DUMP_POS:
-      dumpFile((void *)d_pos, sizeof(float4) * maxVerts,
-               "marchCube_posArray.bin");
-      bTestResult = sdkCompareBin2BinFloat(
-          "marchCube_posArray.bin", "posArray.bin",
-          maxVerts * sizeof(float) * 4, EPSILON, THRESHOLD, argv[0]);
-      break;
-
-    case DUMP_NORMAL:
-      dumpFile((void *)d_normal, sizeof(float4) * maxVerts,
-               "marchCube_normalArray.bin");
-      bTestResult = sdkCompareBin2BinFloat(
-          "marchCube_normalArray.bin", "normalArray.bin",
-          maxVerts * sizeof(float) * 4, EPSILON, THRESHOLD, argv[0]);
-      break;
-
-    case DUMP_VOXEL:
-      dumpFile((void *)d_compVoxelArray, sizeof(uint) * numVoxels,
-               "marchCube_compVoxelArray.bin");
-      bTestResult = sdkCompareBin2BinFloat(
-          "marchCube_compVoxelArray.bin", "compVoxelArray.bin",
-          numVoxels * sizeof(uint), EPSILON, THRESHOLD, argv[0]);
-      break;
-
-    default:
-      printf("Invalid validation flag!\n");
-      printf("-dump=0 <check position>\n");
-      printf("-dump=1 <check normal>\n");
-      printf("-dump=2 <check voxel>\n");
-      exit(EXIT_SUCCESS);
-  }
-
-  exit(bTestResult ? EXIT_SUCCESS : EXIT_FAILURE);
-
-  */
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv) {
-  pArgc = &argc;
-  pArgv = argv;
 
   printf("[%s] - Starting...\n", argv[0]);
 
-  if (checkCmdLineFlag(argc, (const char **)argv, "file") &&
-      checkCmdLineFlag(argc, (const char **)argv, "dump")) {
-    g_bValidate = true;
-    runAutoTest(argc, argv);
-  } else {
-    runAutoTest(argc, argv);
-  }
+  // Initialize buffers for Marching Cubes
+  initMC(argc, argv);
+
+  computeIsosurface();
+
+  cleanup();
 
   exit(EXIT_SUCCESS);
 }
@@ -274,64 +231,22 @@ int main(int argc, char **argv) {
 void initMC(int argc, char **argv) {
   printf("Starting `initMC`\n");
   sycl::queue q;
-  // parse command line arguments
-  int n;
 
-  if (checkCmdLineFlag(argc, (const char **)argv, "grid")) {
-    n = getCmdLineArgumentInt(argc, (const char **)argv, "grid");
-    gridSizeLog2.x() = gridSizeLog2.y() = gridSizeLog2.z() = n;
-  }
-
-  if (checkCmdLineFlag(argc, (const char **)argv, "gridx")) {
-    n = getCmdLineArgumentInt(argc, (const char **)argv, "gridx");
-    gridSizeLog2.x() = n;
-  }
-
-  if (checkCmdLineFlag(argc, (const char **)argv, "gridx")) {
-    n = getCmdLineArgumentInt(argc, (const char **)argv, "gridx");
-    gridSizeLog2.y() = n;
-  }
-
-  if (checkCmdLineFlag(argc, (const char **)argv, "gridz")) {
-    n = getCmdLineArgumentInt(argc, (const char **)argv, "gridz");
-    gridSizeLog2.z() = n;
-  }
-
-  char *filename;
-
-  if (getCmdLineArgumentString(argc, (const char **)argv, "file", &filename)) {
-    volumeFilename = filename;
-  }
-
-  gridSize =
-      sycl::uint3(1 << gridSizeLog2.x(), 1 << gridSizeLog2.y(), 1 << gridSizeLog2.z());
+  gridSize = sycl::uint3(1 << gridSizeLog2.x(), 1 << gridSizeLog2.y(), 1 << gridSizeLog2.z());
   gridSizeMask = sycl::uint3(gridSize.x() - 1, gridSize.y() - 1, gridSize.z() - 1);
-  gridSizeShift =
-      sycl::uint3(0, gridSizeLog2.x(), gridSizeLog2.x() + gridSizeLog2.y());
+  gridSizeShift = sycl::uint3(0, gridSizeLog2.x(), gridSizeLog2.x() + gridSizeLog2.y());
 
   numVoxels = gridSize.x() * gridSize.y() * gridSize.z();
-  voxelSize =
-      sycl::float3(2.0f / gridSize.x(), 2.0f / gridSize.y(), 2.0f / gridSize.z());
+  voxelSize = sycl::float3(2.0f / gridSize.x(), 2.0f / gridSize.y(), 2.0f / gridSize.z());
   maxVerts = gridSize.x() * gridSize.y() * 100;
 
-  printf("grid: %d x %d x %d = %d voxels\n", gridSize.x(), gridSize.y(), gridSize.z(),
-         numVoxels);
+  printf("grid: %d x %d x %d = %d voxels\n", gridSize.x(), gridSize.y(), gridSize.z(), numVoxels);
   printf("max verts = %d\n", maxVerts);
 
-#if SAMPLE_VOLUME
   // load volume data
   printf("Loading volume data\n");
-  char *path = sdkFindFilePath(volumeFilename, argv[0]);
-
-  if (path == nullptr) {
-    fprintf(stderr, "Error finding file '%s'\n", volumeFilename);
-
-    exit(EXIT_FAILURE);
-  }
-  printf("Setting grid size\n");
-
   int size = gridSize.x() * gridSize.y() * gridSize.z() * sizeof(uchar);
-  uchar *volume = loadRawFile(path, size);
+  uchar *volume = loadRawFile(volumeFilename, size);
 
   printf("Setting device memory\n");
   d_volume = static_cast<uchar *>(sycl::malloc_device(size, q));
@@ -342,12 +257,11 @@ void initMC(int argc, char **argv) {
   createVolumeTexture(d_volume, size);
   
   printf("Finished loading volume data\n");
-#endif
 
-  if (g_bValidate) {
-    d_pos = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
-    d_normal = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
-  }
+  //if (g_bValidate) {
+  //  d_pos = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+  //  d_normal = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+  //}
 
   // allocate textures
   allocateTextures(q, &d_edgeTable, &d_triTable, &d_numVertsTable);
@@ -363,27 +277,6 @@ void initMC(int argc, char **argv) {
   printf("Finished `initMC`\n");
 }
 
-void cleanup() {
-  sycl::queue q;
-  if (g_bValidate) {
-          sycl::free(d_pos, q);
-          sycl::free(d_normal, q);
-  }
-
-  destroyAllTextureObjects();
-  sycl::free(d_edgeTable, q);
-  sycl::free(d_triTable, q);
-  sycl::free(d_numVertsTable, q);
-  sycl::free(d_voxelVerts, q);
-  sycl::free(d_voxelVertsScan, q);
-  sycl::free(d_voxelOccupied, q);
-  sycl::free(d_voxelOccupiedScan, q);
-  sycl::free(d_compVoxelArray, q);
-
-  if (d_volume) {
-          sycl::free(d_volume, q);
-  }
-}
 
 #define DEBUG_BUFFERS 0
 
@@ -398,17 +291,8 @@ void computeIsosurface() {
 
   numBlocks = std::min(numBlocks, 65535);
   
-  // used w/ nd range
-  //sycl::range<3> grid(numBlocks, 1, 1);
-  //sycl::range<3> threads_range(threads, 1, 1);
-
   sycl::range<3> globalRange(numBlocks, 1, threads);
 
-  // get around maximum grid size of 65535 in each dimension
-  //if (grid[0] > 65535) {
-    //grid[1] = grid[0] / 32768;
-    //grid[0] = 32768;
-  //}
   printf("Starting `launch_classifyVoxel`\n");
   // calculate number of vertices need per voxel
   launch_classifyVoxel(q, globalRange, d_voxelVerts, d_voxelOccupied, d_volume,
@@ -487,3 +371,27 @@ void computeIsosurface() {
   q.wait();
 }
 
+void cleanup() 
+{
+  sycl::queue q;
+  if (g_bValidate) 
+  {
+    sycl::free(d_pos, q);
+    sycl::free(d_normal, q);
+  }
+
+  destroyAllTextureObjects();
+  sycl::free(d_edgeTable, q);
+  sycl::free(d_triTable, q);
+  sycl::free(d_numVertsTable, q);
+  sycl::free(d_voxelVerts, q);
+  sycl::free(d_voxelVertsScan, q);
+  sycl::free(d_voxelOccupied, q);
+  sycl::free(d_voxelOccupiedScan, q);
+  sycl::free(d_compVoxelArray, q);
+
+  if (d_volume) 
+  {
+    sycl::free(d_volume, q);
+  }
+}
