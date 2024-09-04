@@ -13,3 +13,4 @@ run-sycl.sh
 *.cube
 build
 version.hpp
+Makefile
