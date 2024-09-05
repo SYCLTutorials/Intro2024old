@@ -54,11 +54,8 @@ float Field::Density(int norb, int npri, const int *icnt, const int *vang,
 }
 
 
-//#include "functioncpu.xx"
-
-//#include "function1d.xx"
 #include "functionED.xx"
-//#include "evaldensobj.cxx"
+
 
  // dumpXYZ("structure.xyz");
 
