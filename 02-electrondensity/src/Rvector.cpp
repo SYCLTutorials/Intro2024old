@@ -6,31 +6,31 @@
 
 using namespace std;
 
-Rvector::Rvector(double *r) {
+Rvector::Rvector(float *r) {
   x = r[0];
   y = r[1];
   z = r[2];
 }
 
-Rvector::Rvector(double rx, double ry, double rz) {
+Rvector::Rvector(float rx, float ry, float rz) {
   x = rx;
   y = ry;
   z = rz;
 }
 
-void Rvector::set_x(double rx) { x = rx; }
+void Rvector::set_x(float rx) { x = rx; }
 
-void Rvector::set_y(double ry) { y = ry; }
+void Rvector::set_y(float ry) { y = ry; }
 
-void Rvector::set_z(double rz) { z = rz; }
+void Rvector::set_z(float rz) { z = rz; }
 
-double Rvector::get_x(void) { return x; }
+float Rvector::get_x(void) { return x; }
 
-double Rvector::get_y(void) { return y; }
+float Rvector::get_y(void) { return y; }
 
-double Rvector::get_z(void) { return z; }
+float Rvector::get_z(void) { return z; }
 
-double Rvector::operator[](int idx) {
+float Rvector::operator[](int idx) {
   switch (idx) {
   case 0:
     return x;
@@ -72,25 +72,25 @@ Rvector Rvector::operator-(const Rvector &r) {
   return q;
 }
 
-void Rvector::operator*=(double k) {
+void Rvector::operator*=(float k) {
   x *= k;
   y *= k;
   z *= k;
 }
 
 void Rvector::operator*=(int k) {
-  x *= (double)k;
-  y *= (double)k;
-  z *= (double)k;
+  x *= (float)k;
+  y *= (float)k;
+  z *= (float)k;
 }
 
-void Rvector::operator/=(double k) {
+void Rvector::operator/=(float k) {
   x /= k;
   y /= k;
   z /= k;
 }
 
-Rvector Rvector::operator*(double k) {
+Rvector Rvector::operator*(float k) {
   Rvector q(x, y, z);
   q *= k;
 
@@ -104,26 +104,26 @@ Rvector Rvector::operator*(int k) {
   return q;
 }
 
-Rvector Rvector::operator/(double k) {
+Rvector Rvector::operator/(float k) {
   Rvector q(x, y, z);
   q /= k;
 
   return q;
 }
 
-double Rvector::dot(const Rvector &r) {
+float Rvector::dot(const Rvector &r) {
   Rvector q = r;
 
   return (q[0] * x + q[1] * y + q[2] * z);
 }
 
-double Rvector::norm() {
-  double r2 = x * x + y * y + z * z;
+float Rvector::norm() {
+  float r2 = x * x + y * y + z * z;
   return sqrt(r2);
 }
 
 void Rvector::normalize() {
-  double n = sqrt(x * x + y * y + z * z);
+  float n = sqrt(x * x + y * y + z * z);
 
   x /= n;
   y /= n;

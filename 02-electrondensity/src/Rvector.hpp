@@ -6,37 +6,37 @@ using namespace std;
 
 class Rvector {
 private:
-  double x;
-  double y;
-  double z;
+  float x;
+  float y;
+  float z;
 
 public:
-  Rvector(double rx = 0.0, double ry = 0.0, double rz = 0.0);
-  Rvector(double *);
+  Rvector(float rx = 0.0, float ry = 0.0, float rz = 0.0);
+  Rvector(float *);
 
-  void set_x(double);
-  void set_y(double);
-  void set_z(double);
+  void set_x(float);
+  void set_y(float);
+  void set_z(float);
 
-  double get_x(void);
-  double get_y(void);
-  double get_z(void);
+  float get_x(void);
+  float get_y(void);
+  float get_z(void);
 
-  double operator[](int);
+  float operator[](int);
 
   void operator+=(const Rvector &);
   void operator-=(const Rvector &);
   void operator*=(int k);
-  void operator*=(double k);
-  void operator/=(double k);
+  void operator*=(float k);
+  void operator/=(float k);
   Rvector operator+(const Rvector &);
   Rvector operator-(const Rvector &);
   Rvector operator*(int k);
-  Rvector operator*(double k);
-  Rvector operator/(double k);
+  Rvector operator*(float k);
+  Rvector operator/(float k);
 
-  double dot(const Rvector &);
-  double norm();
+  float dot(const Rvector &);
+  float norm();
 
   void normalize();
 

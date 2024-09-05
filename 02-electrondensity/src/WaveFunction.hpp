@@ -28,9 +28,9 @@ private:
   std::vector<int> icntrs;
   std::vector<int> itypes;
   std::vector<int> vang;
-  std::vector<double> depris;
-  std::vector<double> dnoccs;
-  std::vector<double> dcoefs;
+  std::vector<float> depris;
+  std::vector<float> dnoccs;
+  std::vector<float> dcoefs;
   std::vector<Atom> atoms;
 
   template <typename T>

@@ -4,19 +4,19 @@ void Field::evalDensity_sycl() {
   cl::sycl::queue q(cl::sycl::default_selector{});
   std::cout << " Running on " << q.get_device().get_info<cl::sycl::info::device::name>() << std::endl;
 
-  vector<double> field;
+  vector<float> field;
 
   int natm = wf.natm;
   int npri = wf.npri;
   int norb = wf.norb;
-  double *field_local = new double[nsize];
+  float *field_local = new float[nsize];
 
   std::cout << " Points ( " << npoints_x << "," << npoints_y << "," << npoints_z
             << ")" << std::endl;
   std::cout << " TotalPoints : " << npoints_x * npoints_y * npoints_z
             << std::endl;
 
-  double *coor = new double [3*natm];
+  float *coor = new float [3*natm];
   for(int i=0; i<natm; i++){
     Rvector R(wf.atoms[i].getCoors());
     coor[3*i] = R.get_x();
@@ -27,11 +27,11 @@ void Field::evalDensity_sycl() {
 {
   cl::sycl::buffer<int, 1>   icnt_buff   (wf.icntrs.data(), cl::sycl::range<1>(npri));
   cl::sycl::buffer<int, 1>   vang_buff   (wf.vang.data()  , cl::sycl::range<1>(3*npri));
-  cl::sycl::buffer<double, 1> coor_buff  (coor            , cl::sycl::range<1>(3*natm));
-  cl::sycl::buffer<double, 1> eprim_buff (wf.depris.data(), cl::sycl::range<1>(npri));
-  cl::sycl::buffer<double, 1> coef_buff  (wf.dcoefs.data(), cl::sycl::range<1>(npri*norb));
-  cl::sycl::buffer<double, 1> nocc_buff  (wf.dnoccs.data(), cl::sycl::range<1>(norb));
-  cl::sycl::buffer<double, 1> field_buff (field_local, cl::sycl::range<1>(nsize));
+  cl::sycl::buffer<float, 1> coor_buff  (coor            , cl::sycl::range<1>(3*natm));
+  cl::sycl::buffer<float, 1> eprim_buff (wf.depris.data(), cl::sycl::range<1>(npri));
+  cl::sycl::buffer<float, 1> coef_buff  (wf.dcoefs.data(), cl::sycl::range<1>(npri*norb));
+  cl::sycl::buffer<float, 1> nocc_buff  (wf.dnoccs.data(), cl::sycl::range<1>(norb));
+  cl::sycl::buffer<float, 1> field_buff (field_local, cl::sycl::range<1>(nsize));
 
   q.submit([&](cl::sycl::handler &h){
     auto field_acc = field_buff.get_access<cl::sycl::access::mode::write>(h);
@@ -43,7 +43,7 @@ void Field::evalDensity_sycl() {
     auto nocc_acc = nocc_buff.get_access<cl::sycl::access::mode::read>(h);
 
     h.parallel_for<class Field2>(cl::sycl::range<1>(nsize), [=](cl::sycl::id<1> idx){
-      double cart[3];
+      float cart[3];
       int k = (int) idx % npoints_z;
       int j = ((int) idx/npoints_z) % npoints_y;
       int i = (int) idx / (npoints_z * npoints_y);
@@ -54,10 +54,10 @@ void Field::evalDensity_sycl() {
 
       int *icnt_ptr = icnt_acc.get_pointer();
       int *vang_ptr = vang_acc.get_pointer();
-      double *coor_ptr = coor_acc.get_pointer();
-      double *eprim_ptr = eprim_acc.get_pointer();
-      double *nocc_ptr = nocc_acc.get_pointer();
-      double *coef_ptr = coef_acc.get_pointer();
+      float *coor_ptr = coor_acc.get_pointer();
+      float *eprim_ptr = eprim_acc.get_pointer();
+      float *nocc_ptr = nocc_acc.get_pointer();
+      float *coef_ptr = coef_acc.get_pointer();
 
       field_acc[idx] = Density(norb, npri, icnt_ptr, vang_ptr, cart, coor_ptr, eprim_ptr, nocc_ptr, coef_ptr);
     });

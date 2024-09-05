@@ -18,37 +18,17 @@ int main(int argc, char *argv[]) {
   }
 
   wf.loadWF(argv[1]);
-  double delta = std::stod(argv[2]);
-  double rmin  = std::stod(argv[3]);
+  float delta = std::stod(argv[2]);
+  float rmin  = std::stod(argv[3]);
 
   Field field(wf, delta, rmin);
 
-  Timer tcpu, tgpu, tgpu2;
+  Timer tgpu2;
 
-//  tcpu.start();
-//  field.evalDensity2();
-//  tcpu.stop();
-//vama
-//vama  tgpu.start();
-//vama  field.evalDensity_sycl();
-//vama  tgpu.stop();
-//vama
   tgpu2.start();
-  field.evalDensity_sycl2();
+  field.evalDensity();
   tgpu2.stop();
-//vama
-//vama  std::cout << " Time for CPU : " << tcpu.getDuration() << " \u03BC"
-//vama            << "s" << std::endl;
-//vama
-//vama  std::cout << " Time for GPU  : " << tgpu.getDuration() << " \u03BC"
-//vama            << "s (Kernel 1)" << std::endl;
-//vama
-//vama  std::cout << " Time for GPU  : " << tgpu2.getDuration() << " \u03BC"
-//vama            << "s (Kernel 2)" << std::endl;
-//vama
-//vama  std::cout << " Ratio CPU/GPU (kernel1) : " << tcpu.getDuration() / tgpu.getDuration() << std::endl;
-//vama  std::cout << " Ratio CPU/GPU (kernel2) : " << tcpu.getDuration() / tgpu2.getDuration() << std::endl;
-//vama
-//vama  //wf.printWF();
-//vama  exit(EXIT_SUCCESS);
+  std::cout << " Time = "<< tgpu2.getDuration() << " micro sec"<< std::endl;
+  //wf.printWF();
+  exit(EXIT_SUCCESS);
 }

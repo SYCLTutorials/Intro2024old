@@ -6,9 +6,9 @@
 #include <iomanip>
 #include <iostream>
 
-#include <sycl/sycl.hpp>
 
-Field::Field(Wavefunction &wf, double rmin, double delta) : wf(wf), xmin(rmin), ymin(rmin), zmin(rmin), delta(delta){
+
+Field::Field(Wavefunction &wf, float rmin, float delta) : wf(wf), xmin(rmin), ymin(rmin), zmin(rmin), delta(delta){
 
     npoints_x = static_cast<int>(fabs(2.*xmin / delta));
     npoints_y = static_cast<int>(fabs(2.*ymin / delta));
@@ -17,33 +17,33 @@ Field::Field(Wavefunction &wf, double rmin, double delta) : wf(wf), xmin(rmin), 
     nsize = npoints_x * npoints_y * npoints_z;
 }
 
-double Field::Density(int norb, int npri, const int *icnt, const int *vang,
-                           const double *r, const double *coor,
-                           const double *depris, const double *nocc,
-                           const double *coef) {
-  double den = 0.0;
-  const double x = r[0];
-  const double y = r[1];
-  const double z = r[2];
+float Field::Density(int norb, int npri, const int *icnt, const int *vang,
+                           const float *r, const float *coor,
+                           const float *depris, const float *nocc,
+                           const float *coef) {
+  float den = 0.0;
+  const float x = r[0];
+  const float y = r[1];
+  const float z = r[2];
 
   for (int i = 0; i < norb; i++) {
-    double mo = 0.0;
+    float mo = 0.0;
     const int i_prim = i * npri;
     for (int j = 0; j < npri; j++) {
       const int vj = 3 * j;
       const int centerj = 3 * icnt[j];
-      const double difx = x - coor[centerj];
-      const double dify = y - coor[centerj + 1];
-      const double difz = z - coor[centerj + 2];
-      const double rr = difx * difx + dify * dify + difz * difz;
+      const float difx = x - coor[centerj];
+      const float dify = y - coor[centerj + 1];
+      const float difz = z - coor[centerj + 2];
+      const float rr = difx * difx + dify * dify + difz * difz;
 
-      const double expo = exp(-depris[j] * rr);
-      const double lx = vang[vj];
-      const double ly = vang[vj + 1];
-      const double lz = vang[vj + 2];
-      const double facx = pow(difx, lx);
-      const double facy = pow(dify, ly);
-      const double facz = pow(difz, lz);
+      const float expo = exp(-depris[j] * rr);
+      const float lx = vang[vj];
+      const float ly = vang[vj + 1];
+      const float lz = vang[vj + 2];
+      const float facx = pow(difx, lx);
+      const float facy = pow(dify, ly);
+      const float facz = pow(difz, lz);
 
       mo += facx * facy * facz * expo * coef[i_prim + j];
     }
@@ -57,9 +57,10 @@ double Field::Density(int norb, int npri, const int *icnt, const int *vang,
 //#include "functioncpu.xx"
 
 //#include "function1d.xx"
-#include "function3d.xx"
+#include "functionED.xx"
 //#include "evaldensobj.cxx"
 
+ // dumpXYZ("structure.xyz");
 
 
 
