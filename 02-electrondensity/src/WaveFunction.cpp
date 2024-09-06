@@ -10,8 +10,8 @@ Wavefunction::~Wavefunction() {}
 
 void Wavefunction::loadWF(string fname) {
   int itmp;
-  double tmp;
-  double tx, ty, tz;
+  float tmp;
+  float tx, ty, tz;
   std::vector<int> atomicNumbers;
   std::vector<Rvector> atomicCoordinates;
 
@@ -64,7 +64,7 @@ void Wavefunction::loadWF(string fname) {
           std::string::npos) {
         for (int i = 0; i < natm; i++) {
           std::getline(file, line);
-          sscanf(line.c_str(), "%lf %lf %lf", &tx, &ty, &tz);
+          sscanf(line.c_str(), "%f %f %f", &tx, &ty, &tz);
           atomicCoordinates.push_back(Rvector(tx, ty, tz));
         }
       }

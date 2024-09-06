@@ -11,41 +11,24 @@ int main(int argc, char *argv[]) {
   std::cout << "Git SHA1: " << GIT_SHA1 << std::endl;
 
   Wavefunction wf;
-  if( argc != 2){
+  if( argc != 4){
     std::cout << " We need more arguments try with:" << std::endl;
-    std::cout << " ./" << argv[0] << " foo.wfx" << std::endl;
+    std::cout << " ./" << argv[0] << " foo.wfx"  << " delta" << " rmin"<< std::endl;
     exit(EXIT_FAILURE);
   }
+
   wf.loadWF(argv[1]);
+  float delta = std::stod(argv[2]);
+  float rmin  = std::stod(argv[3]);
 
-  Field field(wf);
+  Field field(wf, delta, rmin);
 
-  Timer tcpu, tgpu, tgpu2;
-
-  tcpu.start();
-  field.evalDensity2();
-  tcpu.stop();
-
-  tgpu.start();
-  field.evalDensity_sycl();
-  tgpu.stop();
+  Timer tgpu2;
 
   tgpu2.start();
-  field.evalDensity_sycl2();
+  field.evalDensity();
   tgpu2.stop();
-
-  std::cout << " Time for CPU : " << tcpu.getDuration() << " \u03BC"
-            << "s" << std::endl;
-
-  std::cout << " Time for GPU  : " << tgpu.getDuration() << " \u03BC"
-            << "s (Kernel 1)" << std::endl;
-
-  std::cout << " Time for GPU  : " << tgpu2.getDuration() << " \u03BC"
-            << "s (Kernel 2)" << std::endl;
-
-  std::cout << " Ratio CPU/GPU (kernel1) : " << tcpu.getDuration() / tgpu.getDuration() << std::endl;
-  std::cout << " Ratio CPU/GPU (kernel2) : " << tcpu.getDuration() / tgpu2.getDuration() << std::endl;
-
+  std::cout << " Time = "<< tgpu2.getDuration() << " micro sec"<< std::endl;
   //wf.printWF();
   exit(EXIT_SUCCESS);
 }

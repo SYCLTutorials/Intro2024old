@@ -14,37 +14,37 @@ public:
 
 private:
   int zatom = -1;
-  double mass = 0.1;
+  float mass = 0.1;
   string symb = "00";
   string setSymbol(int);
 
   int setAtomicNumberfromSymbol(string);
-  double setAtomicMass(int);
+  float setAtomicMass(int);
 
 public:
   //  Rvector coor;
-  Atom(int, double, double, double);
-  Atom(int, double *);
+  Atom(int, float, float, float);
+  Atom(int, float *);
   Atom(int, Rvector);
   ~Atom();
   //***********************************************
-  Atom(string, double, double, double);
-  Atom(string, double *);
+  Atom(string, float, float, float);
+  Atom(string, float *);
   Atom(string, Rvector);
-  Atom(const char *, double, double, double);
-  Atom(const char *, double *);
+  Atom(const char *, float, float, float);
+  Atom(const char *, float *);
   Atom(const char *, Rvector);
   //***********************************************
   Atom &operator=(const Atom &at);
   //***********************************************
-  double getMass();
+  float getMass();
   string getSymbol();
   Rvector getCoors();
-  double get_x();
-  double get_y();
-  double get_z();
+  float get_x();
+  float get_y();
+  float get_z();
   int get_atnum();
-  double get_charge();
+  float get_charge();
   //***********************************************
   friend ostream &operator<<(ostream &o, const Atom &);
 };

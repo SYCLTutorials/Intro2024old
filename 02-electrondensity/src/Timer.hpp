@@ -12,7 +12,7 @@ private:
 public:
     void start();
     void stop();
-    double getDuration();
+    float getDuration();
 };
 
 #endif

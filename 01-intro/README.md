@@ -34,6 +34,8 @@ auto gpu_selector = sycl::gpu_selector{};
 auto gpuQueue = sycl::queue{gpu_selector};
 ```
 
+# Managing Data
+
 SYCL offers two methods for managing data:
 1. **Buffer/Accessor Model:** This model uses buffers to store data and accessors to read or write data, ensuring safe memory management and synchronization. Here is an example of how you could do it for a dot product between 2 vectors and store the answer:
 
