@@ -6,6 +6,6 @@
 #define PROJECT_VER_MAJOR "0"
 #define PROJECT_VER_MINOR "0"
 #define PROJECT_VER_PATCH ""
-#define GIT_SHA1 "3dc3780-dirty"
+#define GIT_SHA1 "de0e172-dirty"
 
 #endif

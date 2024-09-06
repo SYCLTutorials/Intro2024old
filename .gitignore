@@ -14,3 +14,4 @@ run-sycl.sh
 build
 version.hpp
 Makefile
+functionED.xx

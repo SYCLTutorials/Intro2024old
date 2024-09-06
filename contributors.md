@@ -1,10 +1,11 @@
 # Code contributors
-* Jorge Velez <jorgev2::AT::illinois.edu>
+* Jorge Velez <jorgev2::AT::illinois.edu> Introduction 
 * George K. Thiruvathukal <gthiruvathukal::AT::luc.edu>
-* Erik Pautsch <epautsch::AT::luc.edu>
-* Silvio Rizzi <srizzi::AT::anl.gov>
-* Raymundo Hernandez-Esparza <rhernandezesparza::AT::anl.gov>
-* Álvaro Vázquez-Mayagoitia <alvaro::AT::anl.gov>
+* Erik Pautsch <epautsch::AT::luc.edu> Introduction and Marching Cubes
+* Silvio Rizzi <srizzi::AT::anl.gov> Marching Cubes
+* Raymundo Hernandez-Esparza <rhernandezesparza::AT::anl.gov> Electron Density Code
+
+* Álvaro Vázquez-Mayagoitia <alvaro::AT::anl.gov> Introduction, Examples, Electron Density
 
 # New contributions
 

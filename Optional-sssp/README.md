@@ -11,6 +11,6 @@
   <img src="sssp/animation/MovingVertices.gif" alt="Space Points">
 </p>
 
-> "Geometric diagrams are to geometers what board and pieces are to chessmasters: visual aids, helpful but not indispensable."
-> 
-> — Richard J. Trudeau, *Introduction to Graph Theory*
+## Acknowledgements
+This research used resources of the Argonne Leadership Computing Facility, which is a DOE Office of Science User Facility supported under Contract DE-AC02-06CH11357. Argonne National Laboratory’s work was supported by the U.S. Department of Energy, Office of Science, under contract DE-AC02-06CH11357.
+
