@@ -4,62 +4,6 @@
   https://github.com/NVIDIA/cuda-samples/tree/master/Samples/5_Domain_Specific/marchingCubes
 *****************************************************/
 
-
-/*
-  Marching cubes
-
-  This sample extracts a geometric isosurface from a volume dataset using
-  the marching cubes algorithm. It uses the scan (prefix sum) function from
-  the Thrust library to perform stream compaction.  Similar techniques can
-  be used for other problems that require a variable-sized output per
-  thread.
-
-  For more information on marching cubes see:
-  http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
-  http://en.wikipedia.org/wiki/Marching_cubes
-
-  Volume data courtesy:
-  http://www9.informatik.uni-erlangen.de/External/vollib/
-
-  For more information on the Thrust library
-  http://code.google.com/p/thrust/
-
-  The algorithm consists of several stages:
-
-  1. Execute "classifyVoxel" kernel
-  This evaluates the volume at the corners of each voxel and computes the
-  number of vertices each voxel will generate.
-  It is executed using one thread per voxel.
-  It writes two arrays - voxelOccupied and voxelVertices to global memory.
-  voxelOccupied is a flag indicating if the voxel is non-empty.
-
-  2. Scan "voxelOccupied" array (using Thrust scan)
-  Read back the total number of occupied voxels from GPU to CPU.
-  This is the sum of the last value of the exclusive scan and the last
-  input value.
-
-  3. Execute "compactVoxels" kernel
-  This compacts the voxelOccupied array to get rid of empty voxels.
-  This allows us to run the complex "generateTriangles" kernel on only
-  the occupied voxels.
-
-  4. Scan voxelVertices array
-  This gives the start address for the vertex data for each voxel.
-  We read back the total number of vertices generated from GPU to CPU.
-
-  Note that by using a custom scan function we could combine the above two
-  scan operations above into a single operation.
-
-  5. Execute "generateTriangles" kernel
-  This runs only on the occupied voxels.
-  It looks up the field values again and generates the triangle data,
-  using the results of the scan to write the output to the correct addresses.
-  The marching cubes look-up tables are stored in 1D textures.
-
-  6. Render geometry
-  Using number of vertices from readback.
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -69,10 +13,8 @@
 typedef unsigned int uint;
 typedef unsigned char uchar;
 
-// The number of threads to use for triangle generation (limited by shared
-// memory size)
+// The number of threads to use for triangle generation (limited by shared memory size)
 #define NTHREADS 32
-
 #define SKIP_EMPTY_VOXELS 1
 
 extern "C" void launch_classifyVoxel(sycl::queue &q, 
@@ -119,7 +61,7 @@ extern "C" void ThrustScanWrapper(unsigned int *output,
 		                  unsigned int *input,
                                   unsigned int numElements);
 
-const char *volumeFilename = "./data/Bucky.raw";
+const char *volumeFilename = "../data/Bucky.raw";
 
 sycl::uint3 gridSizeLog2 = sycl::uint3(5, 5, 5);
 sycl::uint3 gridSizeShift;
@@ -138,11 +80,11 @@ float dIsoValue = 0.005f;
 sycl::float4 *d_pos = nullptr, *d_normal = nullptr;
 
 uchar *d_volume = nullptr;
-uint *d_voxelVerts = nullptr;
-uint *d_voxelVertsScan = nullptr;
-uint *d_voxelOccupied = nullptr;
-uint *d_voxelOccupiedScan = nullptr;
-uint *d_compVoxelArray = nullptr;
+uint  *d_voxelVerts = nullptr;
+uint  *d_voxelVertsScan = nullptr;
+uint  *d_voxelOccupied = nullptr;
+uint  *d_voxelOccupiedScan = nullptr;
+uint  *d_compVoxelArray = nullptr;
 
 // tables
 uint *d_numVertsTable = nullptr;
@@ -151,16 +93,10 @@ uint *d_triTable = nullptr;
 
 bool g_bValidate = false;
 
+//void dumpFile(void *dData, int data_bytes, const char *file_name);
 
-// forward declarations
-void initMC(int argc, char **argv);
-void computeIsosurface();
-void cleanup();
-
-void dumpFile(void *dData, int data_bytes, const char *file_name);
-
-template <class T>
-void dumpBuffer(T *d_buffer, int nelements, int size_element);
+//template <class T>
+//void dumpBuffer(T *d_buffer, int nelements, int size_element);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Load raw data from disk
@@ -207,6 +143,10 @@ void dumpBuffer(T *d_buffer, int nelements, int size_element) {
   free(h_buffer);
 }
 
+// forward declarations
+void initMC(int argc, char **argv, sycl::queue q);
+void computeIsosurface(sycl::queue q);
+void cleanup(sycl::queue q);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
@@ -215,12 +155,15 @@ int main(int argc, char **argv) {
 
   printf("[%s] - Starting...\n", argv[0]);
 
+  // Create SYCL queue
+  auto myQueue = sycl::queue{sycl::gpu_selector_v};   
+  
   // Initialize buffers for Marching Cubes
-  initMC(argc, argv);
+  initMC(argc, argv, myQueue);
 
-  computeIsosurface();
+  computeIsosurface(myQueue);
 
-  cleanup();
+  cleanup(myQueue);
 
   exit(EXIT_SUCCESS);
 }
@@ -228,10 +171,9 @@ int main(int argc, char **argv) {
 ////////////////////////////////////////////////////////////////////////////////
 // initialize marching cubes
 ////////////////////////////////////////////////////////////////////////////////
-void initMC(int argc, char **argv) {
+void initMC(int argc, char **argv, sycl::queue q) {
   printf("Starting `initMC`\n");
-  sycl::queue q;
-
+    
   gridSize = sycl::uint3(1 << gridSizeLog2.x(), 1 << gridSizeLog2.y(), 1 << gridSizeLog2.z());
   gridSizeMask = sycl::uint3(gridSize.x() - 1, gridSize.y() - 1, gridSize.z() - 1);
   gridSizeShift = sycl::uint3(0, gridSizeLog2.x(), gridSizeLog2.x() + gridSizeLog2.y());
@@ -283,8 +225,8 @@ void initMC(int argc, char **argv) {
 ////////////////////////////////////////////////////////////////////////////////
 //! Run the **SYCL** part of the computation
 ////////////////////////////////////////////////////////////////////////////////
-void computeIsosurface() {
-  sycl::queue q;
+void computeIsosurface(sycl::queue q) {
+  
   int maxThreadsPerBlock = 1024;
   int threads = std::min(128, maxThreadsPerBlock);
   int numBlocks = (numVoxels + threads - 1) / threads;
@@ -371,9 +313,9 @@ void computeIsosurface() {
   q.wait();
 }
 
-void cleanup() 
+void cleanup(sycl::queue q) 
 {
-  sycl::queue q;
+  
   if (g_bValidate) 
   {
     sycl::free(d_pos, q);
