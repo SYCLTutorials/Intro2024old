@@ -15,51 +15,50 @@ typedef unsigned char uchar;
 
 // The number of threads to use for triangle generation (limited by shared memory size)
 #define NTHREADS 32
-#define SKIP_EMPTY_VOXELS 1
 
 extern "C" void launch_classifyVoxel(sycl::queue &q, 
-		                     sycl::range<3> globalRange,
-                                     uint *voxelVerts, 
-				     uint *voxelOccupied, 
-				     uchar *volume,
-                                     sycl::uint3 gridSize, 
-				     sycl::uint3 gridSizeShift,
-                                     sycl::uint3 gridSizeMask, 
-				     uint numVoxels,
-                                     sycl::float3 voxelSize, 
-				     float isoValue);
+		sycl::range<3> globalRange,
+        uint *voxelVerts, 
+		uint *voxelOccupied, 
+		uchar *volume,
+        sycl::uint3 gridSize, 
+		sycl::uint3 gridSizeShift,
+        sycl::uint3 gridSizeMask, 
+		uint numVoxels,
+        sycl::float3 voxelSize, 
+		float isoValue);
 
 extern "C" void launch_compactVoxels(sycl::queue &q, 
-		                     sycl::range<3> globalRange,
-                                     uint *compactedVoxelArray, 
-				     uint *voxelOccupied,
-                                     uint *voxelOccupiedScan, 
-				     uint numVoxels);
+		sycl::range<3> globalRange,
+        uint *compactedVoxelArray, 
+		uint *voxelOccupied,
+        uint *voxelOccupiedScan, 
+		uint numVoxels);
 
 extern "C" void launch_generateTriangles(sycl::queue &q, 
-		                     sycl::range<3> globalRange,
-                                     sycl::float4 *pos, 
-			             sycl::float4 *norm,
-                                     uint *compactedVoxelArray,
-			             uint *numVertsScanned,
-                                     sycl::uint3 gridSize, 
-				     sycl::uint3 gridSizeShift,
-                                     sycl::uint3 gridSizeMask, 
-			             sycl::float3 voxelSize,
-                                     float isoValue, 
-			             uint activeVoxels, 
-				     uint maxVerts);
+		sycl::range<3> globalRange,
+        sycl::float4 *pos, 
+		sycl::float4 *norm,
+        uint *compactedVoxelArray,
+		uint *numVertsScanned,
+        sycl::uint3 gridSize, 
+		sycl::uint3 gridSizeShift,
+        sycl::uint3 gridSizeMask, 
+		sycl::float3 voxelSize,
+        float isoValue, 
+		uint activeVoxels, 
+		uint maxVerts);
 
 extern "C" void allocateTextures(sycl::queue &q, 
-		                     uint **d_edgeTable, 
-				     uint **d_triTable,
-                                     uint **d_numVertsTable);
+		uint **d_edgeTable, 
+		uint **d_triTable,
+        uint **d_numVertsTable);
 
 extern "C" void createVolumeTexture(uchar *d_volume, size_t buffSize);
 extern "C" void destroyAllTextureObjects();
 extern "C" void ThrustScanWrapper(unsigned int *output, 
-		                  unsigned int *input,
-                                  unsigned int numElements);
+		unsigned int *input,
+        unsigned int numElements);
 
 const char *volumeFilename = "../data/Bucky.raw";
 
@@ -74,8 +73,7 @@ uint maxVerts = 0;
 uint activeVoxels = 0;
 uint totalVerts = 0;
 
-float isoValue = 0.2f;
-float dIsoValue = 0.005f;
+float isoValue = 100.0f;
 
 sycl::float4 *d_pos = nullptr, *d_normal = nullptr;
 
@@ -92,11 +90,6 @@ uint *d_edgeTable = nullptr;
 uint *d_triTable = nullptr;
 
 bool g_bValidate = false;
-
-//void dumpFile(void *dData, int data_bytes, const char *file_name);
-
-//template <class T>
-//void dumpBuffer(T *d_buffer, int nelements, int size_element);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Load raw data from disk
@@ -118,6 +111,7 @@ uchar *loadRawFile(const char *filename, int size) {
   return data;
 }
 
+/****
 void dumpFile(void *dData, int data_bytes, const char *file_name) {
   void *hData = malloc(data_bytes);
   sycl::queue q;
@@ -142,11 +136,14 @@ void dumpBuffer(T *d_buffer, int nelements, int size_element) {
   printf("\n");
   free(h_buffer);
 }
+****/
+
 
 // forward declarations
 void initMC(int argc, char **argv, sycl::queue q);
 void computeIsosurface(sycl::queue q);
 void cleanup(sycl::queue q);
+void SaveToCSV( sycl::queue &q, const char *filename);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
@@ -156,12 +153,16 @@ int main(int argc, char **argv) {
   printf("[%s] - Starting...\n", argv[0]);
 
   // Create SYCL queue
-  auto myQueue = sycl::queue{sycl::gpu_selector_v};   
-  
+  //auto myQueue = sycl::queue{sycl::gpu_selector_v};   
+  auto myQueue = sycl::queue{sycl::default_selector_v}; 
+    
   // Initialize buffers for Marching Cubes
   initMC(argc, argv, myQueue);
 
   computeIsosurface(myQueue);
+
+  const char * filename = "vertices.csv";  
+  SaveToCSV(myQueue, filename);  
 
   cleanup(myQueue);
 
@@ -190,21 +191,16 @@ void initMC(int argc, char **argv, sycl::queue q) {
   int size = gridSize.x() * gridSize.y() * gridSize.z() * sizeof(uchar);
   uchar *volume = loadRawFile(volumeFilename, size);
 
-  printf("Setting device memory\n");
+  //printf("Setting device memory\n");
   d_volume = static_cast<uchar *>(sycl::malloc_device(size, q));
   q.memcpy(d_volume, volume, size).wait();
   free(volume);
 
-  printf("Starting `createVolumeTexture`\n");
+  //printf("Starting `createVolumeTexture`\n");
   createVolumeTexture(d_volume, size);
   
-  printf("Finished loading volume data\n");
-
-  //if (g_bValidate) {
-  //  d_pos = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
-  //  d_normal = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
-  //}
-
+  //printf("Finished loading volume data\n");
+  
   // allocate textures
   allocateTextures(q, &d_edgeTable, &d_triTable, &d_numVertsTable);
 
@@ -215,7 +211,9 @@ void initMC(int argc, char **argv, sycl::queue q) {
   d_voxelOccupied = static_cast<uint *>(sycl::malloc_device(memSize, q));
   d_voxelOccupiedScan = static_cast<uint *>(sycl::malloc_device(memSize, q));
   d_compVoxelArray = static_cast<uint *>(sycl::malloc_device(memSize, q));
-
+  d_pos = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+  d_normal = static_cast<sycl::float4 *>(sycl::malloc_device(maxVerts * sizeof(float) * 4, q));
+    
   printf("Finished `initMC`\n");
 }
 
@@ -246,7 +244,7 @@ void computeIsosurface(sycl::queue q) {
   dumpBuffer(d_voxelVerts, numVoxels, sizeof(uint));
 #endif
 
-#if SKIP_EMPTY_VOXELS
+
   // scan voxel occupied array
   ThrustScanWrapper(d_voxelOccupiedScan, d_voxelOccupied, numVoxels);
 
@@ -272,11 +270,13 @@ void computeIsosurface(sycl::queue q) {
   }
 
   // compact voxel index array
-  launch_compactVoxels(q, globalRange, d_compVoxelArray, d_voxelOccupied,
-                       d_voxelOccupiedScan, numVoxels);
+  launch_compactVoxels(q, 
+             globalRange, 
+             d_compVoxelArray, 
+             d_voxelOccupied,
+             d_voxelOccupiedScan, 
+             numVoxels);
   q.wait();
-
-#endif  // SKIP_EMPTY_VOXELS
 
   // scan voxel vertex count array
   ThrustScanWrapper(d_voxelVertsScan, d_voxelVerts, numVoxels);
@@ -292,14 +292,16 @@ void computeIsosurface(sycl::queue q) {
     q.memcpy(&lastElement, d_voxelVerts + numVoxels - 1, sizeof(uint)).wait();
     q.memcpy(&lastScanElement, d_voxelVertsScan + numVoxels - 1, sizeof(uint)).wait();
     totalVerts = lastElement + lastScanElement;
+ 
+    printf("Total number of vertices: %d\n", totalVerts);
   }
 
-  // generate triangles, writing to vertex buffers
-#if SKIP_EMPTY_VOXELS
+  // generate triangles
+//#if SKIP_EMPTY_VOXELS
   sycl::range<3> globalRange2((int)ceil(activeVoxels / (float)NTHREADS), 1, NTHREADS);
-#else
-  sycl::range<3> globalRange2((int)ceil(numVoxels / (float)NTHREADS), 1, NTHREADS);
-#endif
+//#else
+//  sycl::range<3> globalRange2((int)ceil(numVoxels / (float)NTHREADS), 1, NTHREADS);
+//#endif
 
   while (globalRange2[0] > 65535) {
     globalRange2[0] /= 2;
@@ -315,13 +317,8 @@ void computeIsosurface(sycl::queue q) {
 
 void cleanup(sycl::queue q) 
 {
-  
-  if (g_bValidate) 
-  {
-    sycl::free(d_pos, q);
-    sycl::free(d_normal, q);
-  }
-
+  sycl::free(d_pos, q);
+  sycl::free(d_normal, q);
   destroyAllTextureObjects();
   sycl::free(d_edgeTable, q);
   sycl::free(d_triTable, q);
@@ -337,3 +334,43 @@ void cleanup(sycl::queue q)
     sycl::free(d_volume, q);
   }
 }
+
+// Function to save SYCL vertex positions to a CSV file in C
+void SaveToCSV(sycl::queue &q, const char *filename) {
+    // Allocate host memory to copy data from the SYCL buffer
+    printf("Allocating host buffer for %d vertices\n", totalVerts);
+    sycl::float4 *h_pos = (sycl::float4 *)malloc(totalVerts * sizeof(sycl::float4));
+    if (!h_pos) {
+        fprintf(stderr, "Error: Unable to allocate host memory\n");
+        return;
+    }
+
+    // Copy the data from the device to the host
+    q.memcpy(h_pos, d_pos, totalVerts * sizeof(sycl::float4)).wait();
+
+    // Open a CSV file for writing
+    FILE *outFile = fopen(filename, "w");
+    if (!outFile) {
+        fprintf(stderr, "Error: Unable to open file %s\n", filename);
+        free(h_pos);
+        return;
+    }
+
+    // Write the CSV header
+    fprintf(outFile, "VertexID, X, Y, Z, W\n");
+
+    // Write each vertex's position to the CSV file
+    for (size_t i = 0; i < totalVerts; ++i) {
+        fprintf(outFile, "%zu, %.6f, %.6f, %.6f, %.6f\n",
+            i, h_pos[i].x(), h_pos[i].y(), h_pos[i].z(), h_pos[i].w());
+    }
+
+    // Close the file
+    fclose(outFile);
+    printf("CSV file saved as %s\n", filename);
+
+    // Free allocated host memory
+    free(h_pos);
+}
+
+
