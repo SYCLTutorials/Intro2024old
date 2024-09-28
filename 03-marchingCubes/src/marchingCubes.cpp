@@ -16,6 +16,7 @@ typedef unsigned char uchar;
 // The number of threads to use for triangle generation (limited by shared memory size)
 #define NTHREADS 32
 
+// SYCL kernel launchers
 extern "C" void launch_classifyVoxel(sycl::queue &q, 
 		sycl::range<3> globalRange,
         uint *voxelVerts, 
@@ -59,6 +60,13 @@ extern "C" void destroyAllTextureObjects();
 extern "C" void ThrustScanWrapper(unsigned int *output, 
 		unsigned int *input,
         unsigned int numElements);
+
+// forward declarations
+void initMC(int argc, char **argv, sycl::queue q);
+void computeIsosurface(sycl::queue q);
+void cleanup(sycl::queue q);
+void SaveToCSV(sycl::queue &q, const char *filename);
+
 
 const char *volumeFilename = "../data/Bucky.raw";
 
@@ -111,7 +119,7 @@ uchar *loadRawFile(const char *filename, int size) {
   return data;
 }
 
-/****
+
 void dumpFile(void *dData, int data_bytes, const char *file_name) {
   void *hData = malloc(data_bytes);
   sycl::queue q;
@@ -136,14 +144,8 @@ void dumpBuffer(T *d_buffer, int nelements, int size_element) {
   printf("\n");
   free(h_buffer);
 }
-****/
 
 
-// forward declarations
-void initMC(int argc, char **argv, sycl::queue q);
-void computeIsosurface(sycl::queue q);
-void cleanup(sycl::queue q);
-void SaveToCSV( sycl::queue &q, const char *filename);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
@@ -162,8 +164,8 @@ int main(int argc, char **argv) {
   computeIsosurface(myQueue);
 
   const char * filename = "vertices.csv";  
-  SaveToCSV(myQueue, filename);  
-
+  SaveToCSV(myQueue, filename); 
+    
   cleanup(myQueue);
 
   exit(EXIT_SUCCESS);
@@ -239,11 +241,11 @@ void computeIsosurface(sycl::queue q) {
                        gridSize, gridSizeShift, gridSizeMask, numVoxels,
                        voxelSize, isoValue);
   printf("Finished `launch_classifyVoxel`\n");
+
 #if DEBUG_BUFFERS
   printf("voxelVerts:\n");
   dumpBuffer(d_voxelVerts, numVoxels, sizeof(uint));
 #endif
-
 
   // scan voxel occupied array
   ThrustScanWrapper(d_voxelOccupiedScan, d_voxelOccupied, numVoxels);
@@ -261,6 +263,7 @@ void computeIsosurface(sycl::queue q) {
     q.memcpy(&lastElement, d_voxelOccupied + numVoxels - 1, sizeof(uint)).wait();
     q.memcpy(&lastScanElement, d_voxelOccupiedScan + numVoxels - 1, sizeof(uint)).wait();
     activeVoxels = lastElement + lastScanElement;
+    printf("Number of active voxels: %d\n", activeVoxels);
   }
 
   if (activeVoxels == 0) {
@@ -276,7 +279,7 @@ void computeIsosurface(sycl::queue q) {
              d_voxelOccupied,
              d_voxelOccupiedScan, 
              numVoxels);
-  q.wait();
+  //q.wait();
 
   // scan voxel vertex count array
   ThrustScanWrapper(d_voxelVertsScan, d_voxelVerts, numVoxels);
@@ -308,11 +311,15 @@ void computeIsosurface(sycl::queue q) {
     globalRange2[1] *= 2;
   }
 
+ 
+  //printf("Active voxels: %d\n", activeVoxels);
+  //printf("Maximum number of vertices: %d\n", maxVerts);
   launch_generateTriangles(q, globalRange2, d_pos, d_normal, d_compVoxelArray,
                            d_voxelVertsScan, gridSize, gridSizeShift,
                            gridSizeMask, voxelSize, isoValue, activeVoxels,
                            maxVerts);
-  q.wait();
+    
+  //q.wait();
 }
 
 void cleanup(sycl::queue q) 
@@ -337,8 +344,8 @@ void cleanup(sycl::queue q)
 
 // Function to save SYCL vertex positions to a CSV file in C
 void SaveToCSV(sycl::queue &q, const char *filename) {
+       
     // Allocate host memory to copy data from the SYCL buffer
-    printf("Allocating host buffer for %d vertices\n", totalVerts);
     sycl::float4 *h_pos = (sycl::float4 *)malloc(totalVerts * sizeof(sycl::float4));
     if (!h_pos) {
         fprintf(stderr, "Error: Unable to allocate host memory\n");
@@ -360,7 +367,7 @@ void SaveToCSV(sycl::queue &q, const char *filename) {
     fprintf(outFile, "VertexID, X, Y, Z, W\n");
 
     // Write each vertex's position to the CSV file
-    for (size_t i = 0; i < totalVerts; ++i) {
+    for (size_t i = 0; i < totalVerts; i++) {
         fprintf(outFile, "%zu, %.6f, %.6f, %.6f, %.6f\n",
             i, h_pos[i].x(), h_pos[i].y(), h_pos[i].z(), h_pos[i].w());
     }
