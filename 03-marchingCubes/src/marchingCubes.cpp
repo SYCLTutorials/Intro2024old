@@ -67,7 +67,6 @@ void computeIsosurface(sycl::queue q);
 void cleanup(sycl::queue q);
 void SaveToCSV(sycl::queue &q, const char *filename);
 
-
 const char *volumeFilename = "../data/Bucky.raw";
 
 sycl::uint3 gridSizeLog2 = sycl::uint3(5, 5, 5);
@@ -119,7 +118,6 @@ uchar *loadRawFile(const char *filename, int size) {
   return data;
 }
 
-
 void dumpFile(void *dData, int data_bytes, const char *file_name) {
   void *hData = malloc(data_bytes);
   sycl::queue q;
@@ -145,8 +143,6 @@ void dumpBuffer(T *d_buffer, int nelements, int size_element) {
   free(h_buffer);
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
@@ -162,9 +158,6 @@ int main(int argc, char **argv) {
   initMC(argc, argv, myQueue);
 
   computeIsosurface(myQueue);
-
-  const char * filename = "vertices.csv";  
-  SaveToCSV(myQueue, filename); 
     
   cleanup(myQueue);
 
@@ -193,16 +186,12 @@ void initMC(int argc, char **argv, sycl::queue q) {
   int size = gridSize.x() * gridSize.y() * gridSize.z() * sizeof(uchar);
   uchar *volume = loadRawFile(volumeFilename, size);
 
-  //printf("Setting device memory\n");
   d_volume = static_cast<uchar *>(sycl::malloc_device(size, q));
   q.memcpy(d_volume, volume, size).wait();
   free(volume);
 
-  //printf("Starting `createVolumeTexture`\n");
   createVolumeTexture(d_volume, size);
-  
-  //printf("Finished loading volume data\n");
-  
+   
   // allocate textures
   allocateTextures(q, &d_edgeTable, &d_triTable, &d_numVertsTable);
 
@@ -219,7 +208,6 @@ void initMC(int argc, char **argv, sycl::queue q) {
   printf("Finished `initMC`\n");
 }
 
-
 #define DEBUG_BUFFERS 0
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -235,6 +223,8 @@ void computeIsosurface(sycl::queue q) {
   
   sycl::range<3> globalRange(numBlocks, 1, threads);
 
+  printf("isoValue is: %f\n", isoValue);
+    
   printf("Starting `launch_classifyVoxel`\n");
   // calculate number of vertices need per voxel
   launch_classifyVoxel(q, globalRange, d_voxelVerts, d_voxelOccupied, d_volume,
@@ -273,13 +263,14 @@ void computeIsosurface(sycl::queue q) {
   }
 
   // compact voxel index array
+  printf("Starting `launch_compactVoxels`\n");  
   launch_compactVoxels(q, 
              globalRange, 
              d_compVoxelArray, 
              d_voxelOccupied,
              d_voxelOccupiedScan, 
              numVoxels);
-  //q.wait();
+  printf("Finished `launch_compactVoxels`\n");
 
   // scan voxel vertex count array
   ThrustScanWrapper(d_voxelVertsScan, d_voxelVerts, numVoxels);
@@ -300,26 +291,23 @@ void computeIsosurface(sycl::queue q) {
   }
 
   // generate triangles
-//#if SKIP_EMPTY_VOXELS
+#if SKIP_EMPTY_VOXELS
   sycl::range<3> globalRange2((int)ceil(activeVoxels / (float)NTHREADS), 1, NTHREADS);
-//#else
-//  sycl::range<3> globalRange2((int)ceil(numVoxels / (float)NTHREADS), 1, NTHREADS);
-//#endif
+#else
+  sycl::range<3> globalRange2((int)ceil(numVoxels / (float)NTHREADS), 1, NTHREADS);
+#endif
 
   while (globalRange2[0] > 65535) {
     globalRange2[0] /= 2;
     globalRange2[1] *= 2;
   }
 
- 
-  //printf("Active voxels: %d\n", activeVoxels);
-  //printf("Maximum number of vertices: %d\n", maxVerts);
+  printf("Starting `launch_generateTriangles`\n");
   launch_generateTriangles(q, globalRange2, d_pos, d_normal, d_compVoxelArray,
                            d_voxelVertsScan, gridSize, gridSizeShift,
                            gridSizeMask, voxelSize, isoValue, activeVoxels,
                            maxVerts);
-    
-  //q.wait();
+  printf("Finished `launch_generateTriangles`\n");      
 }
 
 void cleanup(sycl::queue q) 
@@ -342,42 +330,5 @@ void cleanup(sycl::queue q)
   }
 }
 
-// Function to save SYCL vertex positions to a CSV file in C
-void SaveToCSV(sycl::queue &q, const char *filename) {
-       
-    // Allocate host memory to copy data from the SYCL buffer
-    sycl::float4 *h_pos = (sycl::float4 *)malloc(totalVerts * sizeof(sycl::float4));
-    if (!h_pos) {
-        fprintf(stderr, "Error: Unable to allocate host memory\n");
-        return;
-    }
-
-    // Copy the data from the device to the host
-    q.memcpy(h_pos, d_pos, totalVerts * sizeof(sycl::float4)).wait();
-
-    // Open a CSV file for writing
-    FILE *outFile = fopen(filename, "w");
-    if (!outFile) {
-        fprintf(stderr, "Error: Unable to open file %s\n", filename);
-        free(h_pos);
-        return;
-    }
-
-    // Write the CSV header
-    fprintf(outFile, "VertexID, X, Y, Z, W\n");
-
-    // Write each vertex's position to the CSV file
-    for (size_t i = 0; i < totalVerts; i++) {
-        fprintf(outFile, "%zu, %.6f, %.6f, %.6f, %.6f\n",
-            i, h_pos[i].x(), h_pos[i].y(), h_pos[i].z(), h_pos[i].w());
-    }
-
-    // Close the file
-    fclose(outFile);
-    printf("CSV file saved as %s\n", filename);
-
-    // Free allocated host memory
-    free(h_pos);
-}
 
 
